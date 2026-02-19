@@ -1,0 +1,49 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Data files (too large for git)
+data/raw/*.parquet
+data/processed/*.parquet
+data/synthetic/*.parquet
+
+# Models (too large for git)
+models/*.joblib
+models/*.pkl
+models/*.json
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Secrets
+.env
+*.env
+config.yaml
+
+# Reports (optional - may want to keep some)
+# reports/
+
+# Temporary files
+*.tmp
+*.temp

@@ -1,0 +1,84 @@
+# SIP Dynamic Pricing - Configuration Example
+# =============================================
+# Copiar a config.yaml y completar con credenciales reales
+
+# SQL Server Connections
+databases:
+  # EMP03 - Datos históricos (2023 y parte de 2024)
+  emp03:
+    server: "sermgp03"
+    database: "EMP03"
+    driver: "ODBC Driver 18 for SQL Server"
+    trusted_connection: false
+    username: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+    
+  # EMP04 - Datos actuales (2024-2025)
+  emp04:
+    server: "10.10.0.23"
+    database: "EMP04"
+    driver: "ODBC Driver 18 for SQL Server"
+    trusted_connection: false
+    username: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+    
+  # VAD10 - Promociones
+  vad10:
+    server: "serstellar"
+    database: "VAD10"
+    driver: "ODBC Driver 18 for SQL Server"
+    trusted_connection: false
+    username: "YOUR_USERNAME"
+    password: "YOUR_PASSWORD"
+
+# Data Extraction Settings
+extraction:
+  # Categorías de interés
+  clases:
+    - "08FRUV"  # Frutas y Verduras
+    - "03CARN"  # Carnes
+    - "05CHAR"  # Charcutería
+  
+  # Rango de fechas
+  fecha_inicio: "2023-09-01"
+  fecha_fin: "2025-10-31"
+  
+  # Tablas
+  tables:
+    compraventa_2023: "CompraVentasDiario2023"
+    compraventa_2024: "CompraVentasDiario2024"
+    compraventa_2025: "CompraVentasDiario2025"
+    ajustes_actual: "IV10001"
+    ajustes_historico: "IV30300"
+    promociones_master: "MA_PROMOCION"
+    promociones_condicion: "TR_PROMOCION_CONDICION"
+    promociones_valores: "TR_PROMOCION_VALORES"
+
+# Output Paths
+paths:
+  raw_data: "data/raw"
+  processed_data: "data/processed"
+  synthetic_data: "data/synthetic"
+  models: "models"
+  reports: "reports"
+
+# Model Settings
+model:
+  target: "unidades_vendidas"
+  test_size: 0.2
+  validation_size: 0.1
+  random_state: 42
+  
+  # Split temporal
+  train_end: "2024-12-31"
+  validation_end: "2025-06-30"
+
+# Feature Engineering
+features:
+  lag_days: [1, 7, 14, 30]
+  rolling_windows: [7, 14, 30]
+  
+# Apify Settings (Web Scraping)
+apify:
+  gama_actor_id: "chsVPkexFOOXf8Yg6"
+  max_items_per_search: 10
