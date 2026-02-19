@@ -22,13 +22,24 @@ Se realizó el análisis exploratorio completo de los datos extraídos en la Fas
 - **Productos únicos:** 1,819
 - **Categorías:** 3 (03CARN, 05CHAR, 08FRUV)
 
-## Métricas Financieras (Valores Nominales en Bs)
+## Métricas Financieras
 
+### Valores Nominales (Bs)
 | Métrica | Valor |
 |---------|-------|
-| Ingresos totales | $5,294,683,078 Bs |
-| Margen bruto total | $1,749,533,249 Bs |
+| Ingresos totales | 5,294,683,078 Bs |
+| Margen bruto total | 1,749,533,249 Bs |
 | Margen bruto promedio | 33.0% |
+
+### Valores Normalizados (USD) - Con tasas BCV reales
+| Métrica | Valor |
+|---------|-------|
+| Ingresos totales | $61,157,742 USD |
+| Margen bruto total | $19,859,075 USD |
+| Margen bruto promedio | 32.5% |
+
+**Nota:** Normalización realizada con histórico BCV (2021-08-02 a 2026-02-19).
+Tasa inicial (Ene 2023): 17.28 Bs/USD | Tasa final (Dic 2025): 298.14 Bs/USD
 
 ### Margen por Categoría
 
@@ -89,21 +100,25 @@ Se realizó el análisis exploratorio completo de los datos extraídos en la Fas
 | Premio Precio Oferta | 854 | 2.0% |
 | Premio Monto Descuento | 360 | 0.8% |
 
-## ⚠️ Observación Crítica: Efecto Inflacionario
+## ✅ Normalización por Inflación - COMPLETADA
 
-El gráfico de evolución mensual muestra un **crecimiento exponencial de los ingresos nominales** entre 2023 y 2025. Este patrón NO refleja crecimiento real del negocio, sino el **efecto de la inflación en Venezuela**.
+Se normalizaron todos los valores monetarios usando tasas BCV históricas reales:
 
-### Acción Requerida para Fase 2
-Para análisis precisos y entrenamiento de modelos, es **IMPERATIVO** normalizar todos los valores monetarios:
+- **Fuente:** Histórico oficial BCV (1,656 tasas diarias)
+- **Rango:** 2021-08-02 a 2026-02-19
+- **Devaluación en período:** 17.28 → 298.14 Bs/USD (17x)
 
-1. **Obtener tasas BCV históricas** (Bs/USD) por día
-2. **Convertir todos los montos a USD** usando la tasa del día correspondiente
-3. **Recalcular métricas** en valores reales (USD)
+### Evolución Real del Negocio (USD)
+- Ene 2023: ~$740,000/mes
+- Dic 2025: ~$3,100,000/mes
+- **Crecimiento real: ~4.2x** (vs 17x nominal)
 
-Esto permitirá:
-- Identificar tendencias reales de demanda (no distorsionadas por inflación)
-- Entrenar modelos con precios comparables en el tiempo
-- Calcular elasticidades precio-demanda más precisas
+### Precios Promedio por Unidad (USD)
+| Categoría | Precio/Unidad | Margen |
+|-----------|---------------|--------|
+| 03CARN (Carnes) | $6.64 | 35.0% |
+| 05CHAR (Charcutería) | $9.85 | 29.6% |
+| 08FRUV (Frutas/Verduras) | $4.67 | 36.5% |
 
 ## Archivos Generados
 
