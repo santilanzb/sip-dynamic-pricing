@@ -1,7 +1,7 @@
 # Fase 1: Análisis Exploratorio de Datos (EDA)
 
 **Fecha:** 2026-02-19  
-**Autor:** Diego Blanco, Santiago Lanz (con asistencia de Warp AI)
+**Autor:** Santiago Lanz, Diego Blanco
 
 ---
 
