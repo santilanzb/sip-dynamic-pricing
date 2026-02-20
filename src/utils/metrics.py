@@ -179,6 +179,23 @@ def psi_by_feature(train_df: pd.DataFrame, test_df: pd.DataFrame, feature_cols: 
 # Empaquetadores
 # ===============================
 
+def wmape_revenue(
+    df: pd.DataFrame,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    price_col: str = "precio_unitario_usd",
+) -> float:
+    """WMAPE ponderado por ingreso (precio * unidades)."""
+    if price_col not in df.columns:
+        return float("nan")
+    price = np.asarray(df[price_col].values, dtype=float)
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.maximum(np.asarray(y_pred, dtype=float), 0)
+    num = np.sum(np.abs(y_true - y_pred) * price)
+    den = np.sum(np.abs(y_true) * price)
+    return _safe_div(num * 100.0, den)
+
+
 def regression_report(
     y_true: np.ndarray,
     y_pred: np.ndarray,

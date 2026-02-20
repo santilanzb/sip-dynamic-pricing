@@ -46,6 +46,7 @@ from src.utils.metrics import (
     group_metrics,
     binned_metrics,
     mase_from_train_series,
+    wmape_revenue,
 )
 from src.models.conformal import split_conformal_interval, coverage_width
 
@@ -172,6 +173,16 @@ def temporal_split(df: pd.DataFrame, train_end="2024-12-31", val_end="2025-06-30
 # HYPERPARAMETER TUNING CON OPTUNA (optimiza WMAPE en validación)
 # =============================================================================
 
+def _xgb_monotone_constraints_str(columns: List[str]) -> str:
+    """Monotonicidad: precio_unitario_usd con relación negativa (-1), resto 0."""
+    lst = ["-1" if c == "precio_unitario_usd" else "0" for c in columns]
+    return "(" + ",".join(lst) + ")"
+
+
+def _lgb_monotone_constraints_list(columns: List[str]) -> List[int]:
+    return [-1 if c == "precio_unitario_usd" else 0 for c in columns]
+
+
 def optimize_xgboost(
     X_train,
     y_train,
@@ -191,6 +202,7 @@ def optimize_xgboost(
             "objective": "reg:squarederror",
             # Fallback a CPU 'hist' si no hay GPU disponible en la build
             "tree_method": "hist",
+            "monotone_constraints": _xgb_monotone_constraints_str(X_train.columns.tolist()),
             "eta": trial.suggest_float("learning_rate", 0.01, 0.2, log=True),
             "max_depth": trial.suggest_int("max_depth", 3, 12),
             "subsample": trial.suggest_float("subsample", 0.6, 1.0),
@@ -247,6 +259,7 @@ def optimize_lightgbm(
             "n_jobs": -1,
             "random_state": 42,
             "verbose": -1,
+            "monotone_constraints": _lgb_monotone_constraints_list(X_train.columns.tolist()),
         }
         model = lgb.LGBMRegressor(**params, n_estimators=rounds)
         model.fit(
@@ -354,6 +367,10 @@ def train_lightgbm_gpu(
         }
     else:
         params = {**params, "device": "gpu", "random_state": 42, "n_jobs": -1, "verbose": -1}
+
+    # Monotonicidad precio→demanda
+    mono = _lgb_monotone_constraints_list(X_train.columns.tolist())
+    params["monotone_constraints"] = mono
 
     model = lgb.LGBMRegressor(**params, n_estimators=rounds)
     model.fit(
@@ -596,7 +613,9 @@ def train_thesis_quality(
         mase_val = mase_from_train_series(train_df, val_df, y_val_orig, y_pred_val, ["producto_id", "sucursal_id"], "unidades")
         mase_test = mase_from_train_series(train_df, test_df, y_test_orig, y_pred_test, ["producto_id", "sucursal_id"], "unidades")
 
+        # Métricas + WMAPE ponderado por ingreso
         xgb_metrics = regression_report(y_test_orig, y_pred_test, extras={"MASE": mase_test})
+        xgb_metrics["WMAPE_revenue"] = wmape_revenue(test_df, y_test_orig, y_pred_test)
         for k, v in xgb_metrics.items():
             mlflow.log_metric(f"xgb_test_{k}", float(v) if v == v else 0.0)
 
@@ -732,6 +751,7 @@ def train_thesis_quality(
 
             y_pred_test_lgbm = np.expm1(lgbm_model.predict(X_test))
             lgbm_metrics = regression_report(y_test_orig, y_pred_test_lgbm)
+            lgbm_metrics["WMAPE_revenue"] = wmape_revenue(test_df, y_test_orig, y_pred_test_lgbm)
             for k, v in lgbm_metrics.items():
                 mlflow.log_metric(f"lgbm_test_{k}", float(v) if v == v else 0.0)
 
@@ -763,6 +783,7 @@ def train_thesis_quality(
 
         y_pred_test_rf = np.expm1(rf_model.predict(X_test))
         rf_metrics = regression_report(y_test_orig, y_pred_test_rf)
+        rf_metrics["WMAPE_revenue"] = wmape_revenue(test_df, y_test_orig, y_pred_test_rf)
         for k, v in rf_metrics.items():
             mlflow.log_metric(f"rf_test_{k}", float(v) if v == v else 0.0)
 

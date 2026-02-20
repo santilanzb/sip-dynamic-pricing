@@ -382,6 +382,34 @@ def create_target(df: pd.DataFrame, target_col: str = 'unidades') -> pd.DataFram
     return df
 
 
+def add_holiday_features(df: pd.DataFrame, date_col: str = 'fecha', holidays_csv: str = 'data/external/feriados_ve.csv') -> pd.DataFrame:
+    """
+    Agrega features de feriados/eventos a partir de un CSV opcional con columnas:
+    - fecha (YYYY-MM-DD)
+    - tipo (string/categoría opcional)
+    """
+    print("   🎉 Features de feriados/eventos...")
+    df = df.copy()
+    df[date_col] = pd.to_datetime(df[date_col])
+    from pathlib import Path
+    p = Path(holidays_csv)
+    if not p.exists():
+        print(f"      ⚠️ Archivo de feriados no encontrado: {p}. Puede añadirse para mejorar el modelo.")
+        df['es_feriado'] = 0
+        return df
+    try:
+        h = pd.read_csv(p)
+        h['fecha'] = pd.to_datetime(h['fecha'])
+        h['es_feriado'] = 1
+        h = h[['fecha', 'es_feriado'] + ([c for c in h.columns if c not in ['fecha','es_feriado']])]
+        df = df.merge(h[['fecha','es_feriado']], on='fecha', how='left')
+        df['es_feriado'] = df['es_feriado'].fillna(0).astype(int)
+    except Exception as e:
+        print(f"      ⚠️ Error leyendo feriados: {e}")
+        df['es_feriado'] = 0
+    return df
+
+
 def engineer_features(
     fact_ventas_path: str,
     dim_producto_path: Optional[str] = None,
@@ -454,7 +482,10 @@ def engineer_features(
     # 9. Features de interacción
     df = add_interaction_features(df)
     
-    # 10. Target
+    # 10. Feriados
+    df = add_holiday_features(df)
+
+    # 11. Target
     df = create_target(df)
     
     # 11. Filtrar filas con suficientes datos históricos
