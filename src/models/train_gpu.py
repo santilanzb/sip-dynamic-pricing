@@ -687,7 +687,9 @@ def train_thesis_quality(
             from sklearn.inspection import permutation_importance as p_import
 
             sample_idx = np.random.choice(len(X_test), size=min(20000, len(X_test)), replace=False)
-            r = p_import(xgb_model, X_test.iloc[sample_idx], np.log1p(y_test_orig[sample_idx]), n_repeats=5, n_jobs=-1, random_state=42)
+            # XGB Booster no es compatible con sklearn permutation_importance directamente
+            # Se necesitaría un wrapper. Salteamos para XGBoost (usamos SHAP en su lugar).
+            pass  # r = p_import(xgb_bst, X_test.iloc[sample_idx], np.log1p(y_test_orig[sample_idx]), n_repeats=5, n_jobs=-1, random_state=42)
             perm_df = pd.DataFrame({"feature": X_test.columns, "perm_importance": r.importances_mean}).sort_values(
                 "perm_importance", ascending=False
             )
@@ -736,6 +738,7 @@ def train_thesis_quality(
                 print("   Usando parámetros por defecto...")
 
         t0 = time.time()
+        lgbm_early_stop = 200  # Early stopping rounds for LightGBM
         try:
             lgbm_model = train_lightgbm_gpu(
                 X_train,
@@ -744,7 +747,7 @@ def train_thesis_quality(
                 y_val,
                 params=lgbm_params,
                 rounds=lgbm_rounds,
-                early_stopping_rounds=early_stopping_rounds,
+                early_stopping_rounds=lgbm_early_stop,
             )
             lgbm_train_time = time.time() - t0
             mlflow.log_metric("lgbm_train_time_sec", float(lgbm_train_time))
