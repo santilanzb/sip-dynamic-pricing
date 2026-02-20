@@ -1,0 +1,9 @@
+check,rows,cols,required_missing,status,mismatches,top_null_cols,count,notes,lag7_match_pct,max_psi
+totals,1251955.0,62.0,,,,,,,,
+schema,,,[],PASS,,,,,,
+types,,,,PASS,{},,,,,
+nulls,,,,PASS,,"{'unidades_lag_28': 0.0833592261702697, 'unidades_lag_14': 0.029184755043112572, 'sucursal_id': 0.0, 'unidades': 0.0, 'fecha': 0.0, 'producto_id': 0.0, 'costo_usd': 0.0, 'margen_usd': 0.0, 'margen_pct': 0.0, 'tiene_promocion': 0.0, 'tipo_promocion': 0.0, 'pct_descuento': 0.0, 'precio_unitario_usd': 0.0, 'ingreso_usd': 0.0, 'dia_semana': 0.0, 'es_fin_semana': 0.0, 'mes': 0.0, 'año': 0.0, 'tasa_bcv': 0.0, 'dia_mes': 0.0}",,,,
+duplicates,,,,PASS,,,0.0,,,
+ranges,,,,PASS,,,,[],,
+lags_alignment,,,,PASS,,,,,97.19922314218542,
+psi,,,,FAIL,,,,,,6.129544875545638

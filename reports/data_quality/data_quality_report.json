@@ -1,0 +1,55 @@
+{
+  "totals": {
+    "rows": 1251955,
+    "cols": 62
+  },
+  "schema": {
+    "required_missing": [],
+    "status": "PASS"
+  },
+  "types": {
+    "mismatches": {},
+    "status": "PASS"
+  },
+  "nulls": {
+    "top_null_cols": {
+      "unidades_lag_28": 0.0833592261702697,
+      "unidades_lag_14": 0.029184755043112572,
+      "sucursal_id": 0.0,
+      "unidades": 0.0,
+      "fecha": 0.0,
+      "producto_id": 0.0,
+      "costo_usd": 0.0,
+      "margen_usd": 0.0,
+      "margen_pct": 0.0,
+      "tiene_promocion": 0.0,
+      "tipo_promocion": 0.0,
+      "pct_descuento": 0.0,
+      "precio_unitario_usd": 0.0,
+      "ingreso_usd": 0.0,
+      "dia_semana": 0.0,
+      "es_fin_semana": 0.0,
+      "mes": 0.0,
+      "a\u00f1o": 0.0,
+      "tasa_bcv": 0.0,
+      "dia_mes": 0.0
+    },
+    "status": "PASS"
+  },
+  "duplicates": {
+    "count": 0,
+    "status": "PASS"
+  },
+  "ranges": {
+    "notes": [],
+    "status": "PASS"
+  },
+  "lags_alignment": {
+    "lag7_match_pct": 97.19922314218542,
+    "status": "PASS"
+  },
+  "psi": {
+    "max_psi": 6.129544875545638,
+    "status": "FAIL"
+  }
+}
