@@ -36,6 +36,9 @@ Thumbs.db
 *.log
 logs/
 
+# MLflow
+mlruns/
+
 # Secrets
 .env
 *.env
