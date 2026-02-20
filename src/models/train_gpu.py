@@ -759,17 +759,34 @@ def train_thesis_quality(
                 mlflow.log_metric(f"lgbm_test_{k}", float(v) if v == v else 0.0)
 
             plot_results(y_test_orig, y_pred_test_lgbm, output_dir, "LightGBM")
-            joblib.dump(lgbm_model, output_dir / "lgbm_demand_gpu.pkl")
-            mlflow.log_artifact(str(output_dir / "lgbm_demand_gpu.pkl"))
+            joblib.dump(lgbm_model, output_dir / "lgbm_alt.pkl")
+            mlflow.log_artifact(str(output_dir / "lgbm_alt.pkl"))
             results["lightgbm"] = {"metrics": lgbm_metrics, "params": lgbm_params}
 
         except Exception as e:
             print(f"   ⚠️ Error entrenando LightGBM con GPU: {e}")
-            print("   Intentando sin GPU...")
-            lgbm_model = lgb.LGBMRegressor(device="cpu")
-            lgbm_model.fit(X_train, y_train)
+            print(f"   Intentando sin GPU...")
+            lgbm_model = lgb.LGBMRegressor(
+                device="cpu", n_estimators=lgbm_rounds, random_state=42, n_jobs=-1, verbose=-1,
+                monotone_constraints=_lgb_monotone_constraints_list(X_train.columns.tolist()),
+            )
+            lgbm_model.fit(
+                X_train, y_train,
+                eval_set=[(X_val, y_val)],
+                callbacks=[lgb.early_stopping(stopping_rounds=lgbm_early_stop, verbose=False)],
+            )
+            lgbm_train_time = time.time() - t0
+            mlflow.log_metric("lgbm_train_time_sec", float(lgbm_train_time))
+
             y_pred_test_lgbm = np.expm1(lgbm_model.predict(X_test))
             lgbm_metrics = regression_report(y_test_orig, y_pred_test_lgbm)
+            lgbm_metrics["WMAPE_revenue"] = wmape_revenue(test_df, y_test_orig, y_pred_test_lgbm)
+            for k, v in lgbm_metrics.items():
+                mlflow.log_metric(f"lgbm_test_{k}", float(v) if v == v else 0.0)
+
+            plot_results(y_test_orig, y_pred_test_lgbm, output_dir, "LightGBM")
+            joblib.dump(lgbm_model, output_dir / "lgbm_alt.pkl")
+            mlflow.log_artifact(str(output_dir / "lgbm_alt.pkl"))
             results["lightgbm"] = {"metrics": lgbm_metrics}
 
         # =========================================================================

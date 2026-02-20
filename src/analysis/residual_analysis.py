@@ -51,7 +51,7 @@ def load_predictions_and_data():
     X_test = X_test.fillna(-999)
     
     # Cargar modelo
-    model_path = Path('models/rf_demand_baseline.pkl')
+    model_path = Path('models/rf_baseline.pkl')
     if model_path.exists():
         model = joblib.load(model_path)
         y_pred_log = model.predict(X_test)

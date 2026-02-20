@@ -615,9 +615,9 @@ sip-dynamic-pricing/
 │   ├── DECISIONS.md            # Decisiones técnicas/negocio
 │   └── PHASES_DOCUMENTATION.md # Este documento
 ├── models/
-│   ├── rf_demand_baseline.pkl
+│   ├── rf_baseline.pkl
 │   ├── xgb_demand_gpu.json
-│   ├── lgbm_demand_gpu.pkl
+│   ├── lgbm_alt.pkl
 │   └── *.csv, *.png            # Métricas y visualizaciones
 ├── notebooks/
 │   └── 01_eda.ipynb

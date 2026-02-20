@@ -100,9 +100,9 @@ Las métricas por sucursal están disponibles en `models/metrics_by_sucursal.csv
 5. [ ] Comenzar desarrollo del dashboard
 
 ## Artefactos Generados
-- `models/xgb_demand_gpu.json` - Modelo XGBoost
-- `models/lgbm_demand_gpu.pkl` - Modelo LightGBM
-- `models/rf_demand_baseline.pkl` - Modelo Random Forest
+- `models/xgb_demand_gpu.json` - Modelo XGBoost (Booster, API core)
+- `models/lgbm_alt.pkl` - Modelo LightGBM
+- `models/rf_baseline.pkl` - Modelo Random Forest
 - `models/xgb_shap_*.png` - Plots SHAP
 - `models/xgb_conformal_intervals.csv` - Intervalos de predicción
 - `models/metrics_by_*.csv` - Métricas por segmento
