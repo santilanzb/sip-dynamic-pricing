@@ -1,0 +1,4 @@
+clase,delta_mean,delta_median,delta_std,pct_increase,pct_decrease,pct_unchanged
+03CARN     ,9.85,9.98,12.44,93.48,3.63,2.9
+05CHAR     ,8.0,9.79,13.34,86.43,9.41,4.17
+08FRUV     ,12.72,10.0,33.4,98.13,0.69,1.18

@@ -1027,87 +1027,120 @@ Se estimaron curvas de demanda para 9 SKUs representativos (3 por categoría, se
 **Archivo:** `output/simulation/demand_curves.csv`
 **Visualización:** `output/simulation/plots/demand_curves_by_clase.png`
 
-### 7.5 Resultados de la Optimización
+### 7.5 Resultados de la Simulación Multi-Escenario
 
-**Configuración de ejecución:**
+La simulación v2 adopta un enfoque multi-escenario con rangos de precios realistas, calibrados a partir de la variación histórica observada en los datos (mediana de cambio diario: 0.0%, percentil 99: ±5.2%). Se ejecutaron **4 escenarios en Fase 1** (test set) y **1 backtest en Fase 2** (24 meses históricos).
+
+#### 7.5.1 Diseño Experimental
+
+**Escenarios definidos:**
+
+| Escenario | Rango de precio | γ (penalización) | Descripción |
+|-----------|----------------|-------------------|-------------|
+| Conservador | ±5% (×0.95–1.05) | 0.5 | Ajustes incrementales dentro de la variación normal |
+| Moderado | ±10% (×0.90–1.10) | 0.3 | Recomendación principal para implementación |
+| Agresivo | ±15% (×0.85–1.15) | 0.1 | Margen de maniobra amplio |
+| Extremo | ±30% (×0.70–1.30) | 0.1 | Techo teórico (referencia v1) |
+
+**Parámetros comunes a todos los escenarios:**
 
 | Parámetro | Valor |
 |-----------|-------|
-| Período | Test set: Jul–Dic 2025 |
-| Filas | 278,350 |
-| Productos | 759 |
-| Sucursales | 4 (SUC001–SUC004) |
-| Categorías | 3 (Carnes, Fruver, Charcutería) |
-| Tiempo de ejecución | 314.7s (5.2 min) |
-| Bandas conformales | q90 half-width = 5.45, q80 half-width = 2.93 |
+| α (peso revenue) | 1.0 |
+| λ (penalización margen mínimo) | 5.0 |
+| Puntos de evaluación por SKU-día | 50 |
+| Márgenes mínimos soft | Carnes: 25%, Charcutería: 30%, Fruver: 30% |
+| Modelo de demanda | LightGBM bietápico (WMAPE 23.61%) |
 
-#### 7.5.1 Resumen Global
+**Fases de evaluación:**
+- **Fase 1 (Test Set):** Jul–Dic 2025, 278,350 filas, 759 productos, 4 sucursales
+- **Fase 2 (Backtest):** Oct 2023–Sep 2025, 884,802 filas, 1,343 productos, 4 sucursales, 23 meses
+
+**Tiempo de ejecución total:** ~23.2 minutos (Fase 1: ~8.7 min × 4 escenarios, Fase 2: ~7.8 min)
+
+#### 7.5.2 Fase 1 — Comparación de Escenarios (Test Set)
+
+**Revenue base: USD 15,362,415 | Margen base: USD 5,725,474**
+
+| Escenario | ΔRevenue (%) | ΔRevenue (USD) | ΔMargen (%) | ΔMargen (USD) | ΔP prom (%) | ΔP mediana (%) |
+|-----------|-------------|----------------|-------------|----------------|-------------|----------------|
+| Conservador | +4.84% | +743,749 | +13.72% | +785,253 | +6.28% | +4.80% |
+| **Moderado** | **+8.74%** | **+1,342,791** | **+25.54%** | **+1,462,174** | **+11.07%** | **+10.00%** |
+| Agresivo | +12.47% | +1,916,442 | +37.59% | +2,152,044 | +16.18% | +14.98% |
+| Extremo | +23.75% | +3,648,501 | +71.74% | +4,107,208 | +30.91% | +30.03% |
+
+**Distribución de acciones de precio:**
+
+| Escenario | % Subida | % Bajada | % Sin cambio |
+|-----------|---------|---------|---------------|
+| Conservador | 87.46% | 2.75% | 9.79% |
+| Moderado | 96.05% | 2.21% | 1.73% |
+| Agresivo | 98.42% | 1.28% | 0.30% |
+| Extremo | 99.55% | 0.41% | 0.04% |
+
+**Observación clave:** El escenario Conservador es el único que preserva una proporción significativa de SKUs sin cambio (9.79%) y con bajada (2.75%), reflejando que dentro de ±5% el optimizador encuentra que algunos precios ya están cerca del óptimo. A medida que el rango se amplía, la fracción de subidas converge a ~100%, consistente con la baja elasticidad del modelo.
+
+**Visualización:** `output/simulation/phase1/plots/scenario_comparison.png`
+
+#### 7.5.3 Escenario Moderado — Análisis Detallado (Recomendación Principal)
+
+El escenario **Moderado (±10%, γ=0.3)** se recomienda como configuración principal para implementación real por equilibrar ganancia de revenue (+8.74%) con cambios de precio plausibles (mediana +10.0%).
+
+**Resultados globales:**
 
 | Métrica | Valor |
 |---------|-------|
-| Revenue base (test) | USD 15,362,415 |
-| Revenue optimizado | USD 19,010,916 |
-| **ΔRevenue** | **+USD 3,648,501 (+23.75%)** |
+| Revenue base | USD 15,362,415 |
+| Revenue optimizado | USD 16,705,207 |
+| **ΔRevenue** | **+USD 1,342,791 (+8.74%)** |
 | Margen base | USD 5,725,474 |
-| Margen optimizado | USD 9,832,682 |
-| **ΔMargen** | **+USD 4,107,208 (+71.74%)** |
-| Cambio de precio promedio | +30.91% |
-| Cambio de precio mediano | +30.03% |
-| % SKUs con subida de precio | 99.55% |
-| % SKUs con bajada de precio | 0.41% |
-| % SKUs sin cambio | 0.04% |
+| Margen optimizado | USD 7,187,648 |
+| **ΔMargen** | **+USD 1,462,174 (+25.54%)** |
+| Cambio de precio promedio | +11.07% |
+| Cambio de precio mediano | +10.00% |
 | Elasticidad promedio | -0.2324 |
 | Elasticidad mediana | -0.0867 |
 
-#### 7.5.2 Resultados por Categoría
+**Resultados por categoría:**
 
-**ΔRevenue por categoría:**
+| Categoría | Revenue base | Revenue opt | ΔRev (%) | ΔMar (%) | ΔP prom (%) | Fulfillment |
+|-----------|-------------|-------------|----------|----------|-------------|-------------|
+| Carnes (03CARN) | USD 7,065,640 | USD 7,562,152 | +7.03% | +17.89% | +9.03% | 0.982 |
+| Charcutería (05CHAR) | USD 4,131,733 | USD 4,453,057 | +7.78% | +26.44% | +9.47% | 0.988 |
+| Fruver (08FRUV) | USD 4,165,042 | USD 4,690,998 | +12.60% | +43.69% | +12.92% | 0.994 |
 
-| Categoría | Revenue base | Revenue opt | ΔRevenue | ΔRevenue (%) |
-|-----------|-------------|-------------|----------|---------------|
-| Carnes (03CARN) | USD 7,065,640 | USD 8,585,230 | +USD 1,519,590 | +21.51% |
-| Charcutería (05CHAR) | USD 4,131,733 | USD 5,071,162 | +USD 939,429 | +22.74% |
-| Fruver (08FRUV) | USD 4,165,042 | USD 5,354,524 | +USD 1,189,482 | +28.56% |
-
-**ΔMargen por categoría:**
-
-| Categoría | Margen base | Margen opt | ΔMargen | ΔMargen (%) | Margen % base → opt |
-|-----------|------------|------------|---------|-------------|--------------------|
-| Carnes (03CARN) | USD 3,133,577 | USD 4,883,789 | +USD 1,750,212 | +55.85% | 41.3% → 54.6% |
-| Charcutería (05CHAR) | USD 1,338,845 | USD 2,423,215 | +USD 1,084,370 | +80.99% | 32.5% → 48.2% |
-| Fruver (08FRUV) | USD 1,253,052 | USD 2,525,678 | +USD 1,272,626 | +101.56% | 34.8% → 51.9% |
+Fruver obtiene el mayor ΔRevenue (+12.60%) gracias a su menor elasticidad (media -0.151), lo que permite subidas de precio con mínima caída de demanda (fulfillment 0.994). Carnes y Charcutería, con elasticidades más altas (-0.31), muestran impactos más moderados.
 
 **Elasticidad por categoría:**
 
-| Categoría | Elasticidad media | Elasticidad mediana | Desviación |
-|-----------|-------------------|---------------------|------------|
-| Carnes (03CARN) | -0.313 | -0.180 | 0.711 |
-| Charcutería (05CHAR) | -0.306 | -0.148 | 0.722 |
-| Fruver (08FRUV) | -0.151 | -0.029 | 0.581 |
+| Categoría | Media | Mediana | Std | P25 | P75 |
+|-----------|-------|---------|-----|-----|-----|
+| Carnes | -0.313 | -0.180 | 0.711 | -0.623 | +0.044 |
+| Charcutería | -0.306 | -0.148 | 0.722 | -0.561 | +0.054 |
+| Fruver | -0.151 | -0.029 | 0.581 | -0.329 | +0.054 |
+
+Nota: Valores positivos en P75 indican que ~25% de los SKU-día muestran relación precio-demanda positiva (efecto Giffen/Veblen o ruido del modelo), consistente con perecederos de alta rotación.
 
 **Cumplimiento de demanda (demand fulfillment):**
 
-| Categoría | Demanda base | Demanda opt | Fulfillment index |
-|-----------|-------------|-------------|-------------------|
-| Carnes (03CARN) | 1,011,020 uds | 954,236 uds | 0.944 |
-| Charcutería (05CHAR) | 513,194 uds | 485,577 uds | 0.946 |
-| Fruver (08FRUV) | 1,990,367 uds | 1,934,652 uds | 0.972 |
+| Categoría | Demanda base | Demanda opt | Fulfillment |
+|-----------|-------------|-------------|-------------|
+| Carnes | 1,011,020 uds | 992,965 uds | 0.982 |
+| Charcutería | 513,194 uds | 507,110 uds | 0.988 |
+| Fruver | 1,990,367 uds | 1,977,836 uds | 0.994 |
 
-**Precio promedio ponderado (PPV):**
+La pérdida de volumen es mínima: entre 0.6% (Fruver) y 1.8% (Carnes), indicando que los ajustes de ±10% no generan destrucción significativa de demanda.
 
-| Categoría | PPV base (USD) | PPV opt (USD) | ΔPPV (%) |
-|-----------|---------------|---------------|----------|
-| Carnes (03CARN) | 6.99 | 9.00 | +28.74% |
-| Charcutería (05CHAR) | 8.05 | 10.44 | +29.72% |
-| Fruver (08FRUV) | 2.09 | 2.77 | +32.26% |
+**Resultados por sucursal:**
 
-**Índice de Rentabilidad de Precios (IRP):**
+| Sucursal | Revenue base | Revenue opt | ΔRev (%) | ΔMar (%) | ΔP prom (%) |
+|----------|-------------|-------------|----------|----------|-------------|
+| SUC001 | USD 3,887,634 | USD 4,245,933 | +9.22% | +27.49% | +11.84% |
+| SUC002 | USD 4,209,129 | USD 4,597,173 | +9.22% | +26.89% | +11.49% |
+| SUC003 | USD 4,008,566 | USD 4,351,210 | +8.55% | +25.10% | +11.60% |
+| SUC004 | USD 3,257,086 | USD 3,510,890 | +7.79% | +22.11% | +9.28% |
 
-| Categoría | IRP |
-|-----------|-----|
-| Carnes (03CARN) | 92.96% |
-| Charcutería (05CHAR) | 93.98% |
-| Fruver (08FRUV) | 100.92% |
+SUC001 y SUC002 capturan el mayor beneficio (+9.22% ΔRev), mientras SUC004 (sucursal más pequeña) muestra el menor impacto (+7.79%), probablemente por menor volumen y mix de productos diferente.
 
 **Análisis Pareto:**
 
@@ -1118,29 +1151,158 @@ Se estimaron curvas de demanda para 9 SKUs representativos (3 por categoría, se
 | 90% | 191 SKUs | 25.16% |
 | 95% | 292 SKUs | 38.47% |
 
-Concentración alta: el 13.3% de los SKUs genera el 80% del revenue.
+Concentración alta: el 13.3% de los SKUs genera el 80% del revenue — una implementación piloto podría enfocarse en estos ~100 SKUs clave.
 
-#### 7.5.3 Interpretación y Limitaciones
+#### 7.5.4 Comparación por Categoría — Todos los Escenarios
 
-**Hallazgo principal:** El optimizador recomienda subir precios al tope (+30%) para el 99.5% de los SKU-día. Esto se debe a la **muy baja elasticidad precio-demanda** estimada por el modelo (media -0.23, mediana -0.09). Con demanda tan inelástica, subir precios siempre mejora el revenue porque la caída en volumen es mínima (~3-6%).
+**ΔRevenue (%) por categoría y escenario:**
+
+| Categoría | Conservador | Moderado | Agresivo | Extremo |
+|-----------|-------------|----------|----------|---------|
+| Carnes | +3.15% | +7.03% | +10.62% | +21.51% |
+| Charcutería | +4.12% | +7.78% | +11.58% | +22.74% |
+| Fruver | +8.43% | +12.60% | +16.52% | +28.56% |
+
+**ΔMargen (%) por categoría y escenario:**
+
+| Categoría | Conservador | Moderado | Agresivo | Extremo |
+|-----------|-------------|----------|----------|---------|
+| Carnes | +7.94% | +17.89% | +27.90% | +55.85% |
+| Charcutería | +13.41% | +26.44% | +41.01% | +80.99% |
+| Fruver | +28.48% | +43.69% | +58.15% | +101.56% |
+
+**Demand fulfillment por categoría y escenario:**
+
+| Categoría | Conservador | Moderado | Agresivo | Extremo |
+|-----------|-------------|----------|----------|---------|
+| Carnes | 0.991 | 0.982 | 0.969 | 0.944 |
+| Charcutería | 0.997 | 0.988 | 0.974 | 0.946 |
+| Fruver | 1.000 | 0.994 | 0.987 | 0.972 |
+
+**Hallazgo:** Fruver es la categoría más favorable para dynamic pricing en todos los escenarios: mayor ΔRevenue, mayor ΔMargen, y menor pérdida de demanda. Charcutería muestra la mayor sensibilidad de margen. Carnes es la categoría más conservadora en impacto, consistente con su mayor elasticidad.
+
+**Visualización:** `output/simulation/phase1/plots/scenario_by_clase.png`
+
+#### 7.5.5 Fase 2 — Backtest Histórico (Oct 2023 – Sep 2025)
+
+Para validar la robustez temporal de los resultados, se ejecutó el escenario Moderado sobre el período completo de entrenamiento (23 meses, ~3.2× más datos que Fase 1).
+
+**Configuración:**
+
+| Parámetro | Valor |
+|-----------|-------|
+| Período | Oct 2023 – Sep 2025 |
+| Filas | 884,802 |
+| Productos | 1,343 |
+| Sucursales | 4 |
+| Escenario | Moderado (±10%, γ=0.3) |
+| Tiempo de ejecución | 466.9s (7.8 min) |
+
+**Resultados globales:**
+
+| Métrica | Valor |
+|---------|-------|
+| Revenue base | USD 41,381,403 |
+| Revenue optimizado | USD 45,188,358 |
+| **ΔRevenue** | **+USD 3,806,955 (+9.20%)** |
+| Margen base | USD 12,332,563 |
+| Margen optimizado | USD 16,345,461 |
+| **ΔMargen** | **+USD 4,012,899 (+32.54%)** |
+| Cambio de precio promedio | +10.61% |
+| Cambio de precio mediano | +9.98% |
+| Elasticidad promedio | -0.2826 |
+| Elasticidad mediana | -0.1213 |
+
+Los resultados de Fase 2 son consistentes con Fase 1 (ΔRev +9.20% vs +8.74%), validando que el optimizador no está sobreajustado al período de test.
+
+**Resultados por sucursal (Fase 2):**
+
+| Sucursal | Revenue base | Revenue opt | ΔRev (%) | ΔMar (%) | Productos |
+|----------|-------------|-------------|----------|----------|----------|
+| SUC001 | USD 12,033,689 | USD 13,186,966 | +9.58% | +34.37% | 1,293 |
+| SUC002 | USD 11,533,931 | USD 12,624,802 | +9.46% | +33.59% | 1,283 |
+| SUC003 | USD 12,408,154 | USD 13,501,367 | +8.81% | +31.03% | 1,230 |
+| SUC004 | USD 5,405,628 | USD 5,875,223 | +8.69% | +29.79% | 1,122 |
+
+El ordenamiento de sucursales es consistente con Fase 1: SUC001 ≈ SUC002 > SUC003 > SUC004.
+
+**Resultados por categoría (Fase 2):**
+
+| Categoría | Revenue base | Revenue opt | ΔRev (%) | ΔMar (%) | Fulfillment |
+|-----------|-------------|-------------|----------|----------|-------------|
+| Carnes | USD 18,161,276 | USD 19,591,241 | +7.87% | +25.43% | 0.990 |
+| Charcutería | USD 10,840,148 | USD 11,664,720 | +7.61% | +29.84% | 1.000 |
+| Fruver | USD 12,379,978 | USD 13,932,397 | +12.54% | +47.13% | 0.994 |
+
+El patrón por categoría replica Fase 1: Fruver lidera en ΔRev (+12.54%) y ΔMar (+47.13%), con fulfillment cercano a 1.0 en todas las categorías. Charcutería alcanza fulfillment perfecto (1.000), indicando que el margen mínimo de 30% actúa como restricción efectiva.
+
+**Estabilidad temporal — Desglose mensual:**
+
+| Período | ΔRev (%) | ΔMar (%) | Filas |
+|---------|----------|----------|-------|
+| 2023-10 | +9.71% | +35.18% | 31,103 |
+| 2023-11 | +9.24% | +30.98% | 29,833 |
+| 2023-12 | +8.35% | +29.09% | 30,997 |
+| 2024-01 | +8.67% | +30.93% | 27,963 |
+| 2024-02 | +8.24% | +30.11% | 28,620 |
+| 2024-03 | +8.64% | +31.27% | 32,076 |
+| 2024-04 | +8.54% | +30.46% | 30,598 |
+| 2024-05 | +8.16% | +28.34% | 32,148 |
+| 2024-06 | +8.17% | +28.01% | 33,224 |
+| 2024-07 | +7.73% | +24.70% | 37,528 |
+| 2024-08 | +7.84% | +23.12% | 42,717 |
+| 2024-09 | +8.17% | +27.93% | 43,937 |
+| 2024-10 | +8.71% | +28.55% | 44,888 |
+| 2024-12 | +10.73% | +48.68% | 35,668 |
+| 2025-01 | +10.52% | +43.04% | 42,594 |
+| 2025-02 | +11.04% | +47.89% | 40,818 |
+| 2025-03 | +10.81% | +44.26% | 45,971 |
+| 2025-04 | +9.39% | +30.85% | 44,010 |
+| 2025-05 | +9.41% | +37.21% | 46,371 |
+| 2025-06 | +9.75% | +40.42% | 45,140 |
+| 2025-07 | +9.49% | +33.54% | 46,648 |
+| 2025-08 | +9.08% | +29.81% | 47,140 |
+| 2025-09 | +8.86% | +24.75% | 44,810 |
+
+**Rango de ΔRevenue:** +7.73% (Jul 2024) a +11.04% (Feb 2025)
+**Media ± Std:** +9.15% ± 0.89pp
+
+La serie temporal muestra estabilidad notable: el ΔRevenue se mantiene entre ~8% y ~11% durante 23 meses consecutivos, sin tendencia de degradación. Esto confirma que el modelo de demanda y el optimizador producen recomendaciones estables a lo largo del tiempo.
+
+**Nota:** Nov 2024 ausente en los datos — probable gap en el dataset fuente.
+
+**Visualización:** `output/simulation/phase2/plots/monthly_timeseries.png`
+
+#### 7.5.6 Interpretación y Limitaciones
+
+**Hallazgo principal:** El optimizador recomienda subir precios para la gran mayoría de SKU-día en todos los escenarios. Esto se debe a la **baja elasticidad precio-demanda** estimada por el modelo (media -0.23, mediana -0.09). Con demanda inelástica, subir precios mejora el revenue porque la caída en volumen es mínima (1-6% según escenario).
 
 **¿Por qué la elasticidad es tan baja?**
 
-1. **Dominancia de lags de demanda en el modelo:** Las 4 features más importantes del modelo (>86% SHAP) son lags y rolling de demanda. El precio (`precio_unitario_usd`) es feature #10 con SHAP=0.018. El modelo captura principalmente la inercia de demanda, no la sensibilidad al precio.
-2. **Variación de precios limitada en datos históricos:** En el dataset, los precios varían poco día a día para un SKU dado, limitando la señal precio→demanda que el modelo puede aprender.
+1. **Dominancia de lags de demanda en el modelo:** Las 4 features más importantes (>86% SHAP) son lags y rolling de demanda. El precio (`precio_unitario_usd`) es feature #10 con SHAP=0.018. El modelo captura principalmente la inercia de demanda, no la sensibilidad al precio.
+2. **Variación de precios limitada en datos históricos:** Los precios cambian poco día a día para un SKU dado (mediana 0.0%, P99 ±5.2%), limitando la señal precio→demanda aprendida.
 3. **Perecederos en Venezuela:** En un mercado con inflación y escasez, los consumidores priorizan disponibilidad sobre precio para productos básicos (carnes, frutas, verduras).
-4. **Features frozen:** Los lags de demanda permanecen constantes en la simulación (ceteris paribus), lo que significa que la única palanca del optimizador es el precio — y el modelo dice que mover el precio tiene poco efecto.
+4. **Features frozen:** Los lags de demanda permanecen constantes en la simulación (ceteris paribus), lo que significa que la única palanca del optimizador es el precio.
 
-**Implicación para la tesis:** Los resultados del optimizador representan un **techo teórico** asumiendo que la relación precio-demanda del modelo es correcta. En la práctica, las subidas de +30% no son realistas para todos los SKUs simultáneamente. El análisis what-if con ajustes moderados (+5%, +10%) proporciona escenarios más aplicables.
+**Validación multi-escenario:**
 
-**Recomendación:** Para implementación real, se sugiere:
-- Usar γ ≥ 0.5 para limitar cambios bruscos
-- Restringir el rango a [0.90, 1.15] × p_base para ajustes incrementales
-- Validar con A/B testing en sucursales piloto antes de despliegue
+La simulación multi-escenario aborda la limitación principal de v1 (que recomendaba +30% para 99.5% de SKUs):
+- El escenario **Conservador (±5%)** produce ganancia modesta (+4.84% ΔRev) con 9.79% de SKUs sin cambio
+- El escenario **Moderado (±10%)** captura ~37% de la ganancia del Extremo con cambios de precio realistas
+- La **Fase 2 confirma** la robustez temporal: +9.20% ΔRev sostenido durante 23 meses con σ=0.89pp
+- El **patrón por categoría es estable** entre fases: Fruver > Charcutería ≈ Carnes
+
+**Recomendación para implementación:**
+- **Escenario recomendado:** Moderado (±10%, γ=0.3)
+- **Impacto proyectado:** +8.7% a +9.2% en revenue, +25% a +33% en margen bruto
+- **Foco inicial:** Top 100 SKUs (13.3% del catálogo, 80% del revenue)
+- **Sucursales piloto:** SUC001 o SUC002 (mayor impacto estimado)
+- **Validación:** A/B testing antes de despliegue generalizado
+- **Monitoreo:** Fulfillment index (no debe caer por debajo de 0.95) y elasticidad real post-implementación
 
 ### 7.6 Visualizaciones Generadas
 
-7 visualizaciones guardadas en `output/simulation/plots/`:
+**Visualizaciones por escenario** (6 por escenario, en `output/simulation/phase1/{escenario}/plots/` y `phase2/moderado/plots/`):
 
 | Archivo | Contenido |
 |---------|-----------|
@@ -1148,25 +1310,63 @@ Concentración alta: el 13.3% de los SKUs genera el 80% del revenue.
 | `revenue_impact_by_clase.png` | Barras de ΔRevenue y ΔMargen por categoría |
 | `pareto_80_20.png` | Curva Pareto de concentración de revenue |
 | `margin_opportunity_ranking.png` | Top 20 SKUs por oportunidad de margen |
+| `branch_breakdown.png` | ΔRevenue y ΔMargen por sucursal |
+| `heatmap_price_dayofweek.png` | Impacto de revenue por día de semana |
+
+**Visualizaciones exclusivas del escenario Moderado** (en `phase1/moderado/plots/`):
+
+| Archivo | Contenido |
+|---------|-----------|
 | `demand_curves_by_clase.png` | Curvas D(p) de 9 SKUs representativos |
 | `sensitivity_gamma.png` | Frontera γ vs ΔRevenue y estabilidad |
-| `heatmap_price_dayofweek.png` | Impacto de revenue por día de semana |
+
+**Visualizaciones cross-escenario** (en `output/simulation/phase1/plots/`):
+
+| Archivo | Contenido |
+|---------|-----------|
+| `scenario_comparison.png` | Comparación de KPIs entre los 4 escenarios |
+| `scenario_by_clase.png` | ΔRevenue y ΔMargen por categoría y escenario |
+
+**Visualización temporal** (en `output/simulation/phase2/plots/`):
+
+| Archivo | Contenido |
+|---------|-----------|
+| `monthly_timeseries.png` | Serie temporal mensual de ΔRev% y ΔMar% (23 meses) |
+
+**Total:** ~39 visualizaciones (6 × 5 escenarios + 2 exclusivas + 2 cross-escenario + 1 temporal)
 
 ### 7.7 Artefactos Generados
 
 **Directorio:** `output/simulation/`
 
-| Archivo | Descripción | Tamaño |
-|---------|-------------|--------|
-| `optimization_results.parquet` | Resultados detallados (278K filas) | 14.4 MB |
-| `optimization_results.csv` | Ídem en CSV | 44.9 MB |
-| `kpi_summary.json` | Resumen global de KPIs | <1 KB |
-| `run_metadata.json` | Metadata de ejecución | <1 KB |
-| `whatif_scenarios.csv` | 8 escenarios what-if | <1 KB |
-| `sensitivity_gamma.csv` | Sweep de 7 valores de γ | <1 KB |
-| `demand_curves.csv` | 270 puntos de curvas D(p) | 20 KB |
-| `kpis/*.csv` | 16 archivos de KPIs individuales | <50 KB c/u |
-| `plots/*.png` | 7 visualizaciones | ~50-110 KB c/u |
+**Estructura:**
+```
+output/simulation/
+├── phase1/
+│   ├── conservador/          # Escenario ±5%, γ=0.5
+│   ├── moderado/             # Escenario ±10%, γ=0.3 (recomendado)
+│   ├── agresivo/             # Escenario ±15%, γ=0.1
+│   ├── extremo/              # Escenario ±30%, γ=0.1
+│   ├── scenario_comparison.csv
+│   └── plots/                # Visualizaciones cross-escenario
+├── phase2/
+│   ├── moderado/             # Backtest 23 meses
+│   ├── monthly_breakdown.csv
+│   └── plots/                # Serie temporal mensual
+└── plots/                    # Visualizaciones legacy (v1)
+```
+
+**Contenido por directorio de escenario** (e.g., `phase1/moderado/`):
+
+| Archivo | Descripción |
+|---------|-------------|
+| `optimization_results.parquet` | Resultados detallados (278K–885K filas) |
+| `kpi_summary.json` | Resumen global de KPIs |
+| `scenario_metadata.json` | Configuración y metadata de ejecución |
+| `branch_breakdown.csv` | KPIs por sucursal |
+| `clase_breakdown.csv` | KPIs por categoría |
+| `kpis/*.csv` | 16 archivos de KPIs individuales |
+| `plots/*.png` | 6-8 visualizaciones |
 
 **Nota:** Los archivos `optimization_results.parquet` y `.csv` están en `.gitignore` por tamaño. Se regeneran ejecutando `run_optimization.py`.
 
@@ -1225,8 +1425,8 @@ sip-dynamic-pricing/
 │   │   ├── simulator.py        # DemandSimulator
 │   │   ├── optimizer.py        # PriceOptimizer
 │   │   ├── kpis.py             # 16 KPIs
-│   │   ├── counterfactual.py   # What-if, sweep γ, visualizaciones
-│   │   └── run_optimization.py # Runner del pipeline
+│   │   ├── counterfactual.py   # What-if, sweep γ, visualizaciones multi-escenario
+│   │   └── run_optimization.py # Motor multi-escenario configurable
 │   └── utils/
 └── mlruns/                     # MLflow tracking
 ```
@@ -1245,6 +1445,8 @@ sip-dynamic-pricing/
 || `30e3421` | Simulación: motor de simulación y optimizador de precios |
 || `b4fcc21` | Simulación: KPIs, análisis contrafactual y runner |
 || `fd20311` | Simulación: resultados Fase 7 (test 2025-H2) |
+|| `a7efeb6` | Simulación: documentación Fase 7 v1 |
+|| `(pending)` | Simulación v2: multi-escenario + backtest 24 meses |
 
 ---
 

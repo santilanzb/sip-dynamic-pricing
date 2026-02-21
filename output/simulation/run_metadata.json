@@ -1,10 +1,7 @@
 {
-  "timestamp": "2026-02-20T22:04:48.962297",
-  "alpha": 1.0,
-  "gamma": 0.1,
-  "lam": 5.0,
-  "n_points": 50,
-  "test_size": 278350,
+  "version": "2.0",
+  "timestamp": "2026-02-20T22:56:33.592699",
+  "elapsed_total_seconds": 1390.5,
   "valid_branches": [
     "SUC001",
     "SUC002",
@@ -13,25 +10,165 @@
   ],
   "conformal_q90_halfwidth": 5.453,
   "conformal_q80_halfwidth": 2.9315,
-  "elapsed_seconds": 314.7,
-  "kpi_summary": {
-    "total_revenue_base": 15362415.42,
-    "total_revenue_opt": 19010916.42,
-    "delta_revenue": 3648501.0,
-    "delta_revenue_pct": 23.75,
-    "total_margin_base": 5725473.95,
-    "total_margin_opt": 9832681.78,
-    "delta_margin": 4107207.83,
-    "delta_margin_pct": 71.74,
-    "avg_price_change_pct": 30.91,
-    "median_price_change_pct": 30.03,
-    "pct_price_increased": 99.55,
-    "pct_price_decreased": 0.41,
-    "pct_price_unchanged": 0.04,
-    "avg_elasticity": -0.2324,
-    "median_elasticity": -0.0867,
+  "scenarios": [
+    {
+      "name": "conservador",
+      "price_range": [
+        0.95,
+        1.05
+      ],
+      "gamma": 0.5,
+      "alpha": 1.0,
+      "lam": 5.0,
+      "description": "±5%, γ=0.5 — Ajustes incrementales dentro de la variación normal de precios"
+    },
+    {
+      "name": "moderado",
+      "price_range": [
+        0.9,
+        1.1
+      ],
+      "gamma": 0.3,
+      "alpha": 1.0,
+      "lam": 5.0,
+      "description": "±10%, γ=0.3 — Ajustes moderados, recomendación principal para implementación"
+    },
+    {
+      "name": "agresivo",
+      "price_range": [
+        0.85,
+        1.15
+      ],
+      "gamma": 0.1,
+      "alpha": 1.0,
+      "lam": 5.0,
+      "description": "±15%, γ=0.1 — Límite superior operativo. Para exploración de tesis"
+    },
+    {
+      "name": "extremo",
+      "price_range": [
+        0.7,
+        1.3
+      ],
+      "gamma": 0.1,
+      "alpha": 1.0,
+      "lam": 5.0,
+      "description": "±30%, γ=0.1 — Techo teórico / stress test"
+    }
+  ],
+  "phase1": {
+    "date_range": "2025-07-01 to 2025-12-31",
     "n_rows": 278350,
     "n_products": 759,
-    "n_branches": 4
+    "summaries": {
+      "conservador": {
+        "total_revenue_base": 15362415.42,
+        "total_revenue_opt": 16106164.13,
+        "delta_revenue": 743748.71,
+        "delta_revenue_pct": 4.84,
+        "total_margin_base": 5725473.95,
+        "total_margin_opt": 6510727.17,
+        "delta_margin": 785253.22,
+        "delta_margin_pct": 13.72,
+        "avg_price_change_pct": 6.28,
+        "median_price_change_pct": 4.8,
+        "pct_price_increased": 87.46,
+        "pct_price_decreased": 2.75,
+        "pct_price_unchanged": 9.79,
+        "avg_elasticity": -0.2324,
+        "median_elasticity": -0.0867,
+        "n_rows": 278350,
+        "n_products": 759,
+        "n_branches": 4
+      },
+      "moderado": {
+        "total_revenue_base": 15362415.42,
+        "total_revenue_opt": 16705206.8,
+        "delta_revenue": 1342791.38,
+        "delta_revenue_pct": 8.74,
+        "total_margin_base": 5725473.95,
+        "total_margin_opt": 7187648.28,
+        "delta_margin": 1462174.33,
+        "delta_margin_pct": 25.54,
+        "avg_price_change_pct": 11.07,
+        "median_price_change_pct": 10.0,
+        "pct_price_increased": 96.05,
+        "pct_price_decreased": 2.21,
+        "pct_price_unchanged": 1.73,
+        "avg_elasticity": -0.2324,
+        "median_elasticity": -0.0867,
+        "n_rows": 278350,
+        "n_products": 759,
+        "n_branches": 4
+      },
+      "agresivo": {
+        "total_revenue_base": 15362415.42,
+        "total_revenue_opt": 17278857.29,
+        "delta_revenue": 1916441.87,
+        "delta_revenue_pct": 12.47,
+        "total_margin_base": 5725473.95,
+        "total_margin_opt": 7877517.86,
+        "delta_margin": 2152043.91,
+        "delta_margin_pct": 37.59,
+        "avg_price_change_pct": 16.18,
+        "median_price_change_pct": 14.98,
+        "pct_price_increased": 98.42,
+        "pct_price_decreased": 1.28,
+        "pct_price_unchanged": 0.3,
+        "avg_elasticity": -0.2324,
+        "median_elasticity": -0.0867,
+        "n_rows": 278350,
+        "n_products": 759,
+        "n_branches": 4
+      },
+      "extremo": {
+        "total_revenue_base": 15362415.42,
+        "total_revenue_opt": 19010916.42,
+        "delta_revenue": 3648501.0,
+        "delta_revenue_pct": 23.75,
+        "total_margin_base": 5725473.95,
+        "total_margin_opt": 9832681.78,
+        "delta_margin": 4107207.83,
+        "delta_margin_pct": 71.74,
+        "avg_price_change_pct": 30.91,
+        "median_price_change_pct": 30.03,
+        "pct_price_increased": 99.55,
+        "pct_price_decreased": 0.41,
+        "pct_price_unchanged": 0.04,
+        "avg_elasticity": -0.2324,
+        "median_elasticity": -0.0867,
+        "n_rows": 278350,
+        "n_products": 759,
+        "n_branches": 4
+      }
+    }
+  },
+  "phase2": {
+    "scenario": "moderado",
+    "date_range": "2023-10-01 to 2025-09-30",
+    "n_rows": 884802,
+    "n_products": 1343,
+    "n_months": 23,
+    "note": "Incluye datos de entrenamiento — análisis contrafactual histórico",
+    "summary": {
+      "total_revenue_base": 41381402.79,
+      "total_revenue_opt": 45188358.21,
+      "delta_revenue": 3806955.42,
+      "delta_revenue_pct": 9.2,
+      "total_margin_base": 12332562.51,
+      "total_margin_opt": 16345461.11,
+      "delta_margin": 4012898.6,
+      "delta_margin_pct": 32.54,
+      "avg_price_change_pct": 10.61,
+      "median_price_change_pct": 9.98,
+      "pct_price_increased": 93.31,
+      "pct_price_decreased": 4.19,
+      "pct_price_unchanged": 2.5,
+      "avg_elasticity": -0.2826,
+      "median_elasticity": -0.1213,
+      "n_rows": 884802,
+      "n_products": 1343,
+      "n_branches": 4
+    }
   }
 }

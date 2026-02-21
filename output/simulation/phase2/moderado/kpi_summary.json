@@ -1,0 +1,20 @@
+{
+  "total_revenue_base": 41381402.79,
+  "total_revenue_opt": 45188358.21,
+  "delta_revenue": 3806955.42,
+  "delta_revenue_pct": 9.2,
+  "total_margin_base": 12332562.51,
+  "total_margin_opt": 16345461.11,
+  "delta_margin": 4012898.6,
+  "delta_margin_pct": 32.54,
+  "avg_price_change_pct": 10.61,
+  "median_price_change_pct": 9.98,
+  "pct_price_increased": 93.31,
+  "pct_price_decreased": 4.19,
+  "pct_price_unchanged": 2.5,
+  "avg_elasticity": -0.2826,
+  "median_elasticity": -0.1213,
+  "n_rows": 884802,
+  "n_products": 1343,
+  "n_branches": 4
+}

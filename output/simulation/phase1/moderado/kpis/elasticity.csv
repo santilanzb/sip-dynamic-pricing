@@ -1,0 +1,4 @@
+clase,elasticity_mean,elasticity_median,elasticity_std,elasticity_p25,elasticity_p75,n
+03CARN     ,-0.3133,-0.1796,0.7105,-0.6227,0.0442,46478
+05CHAR     ,-0.3064,-0.1479,0.7215,-0.5608,0.0539,96977
+08FRUV     ,-0.1513,-0.0292,0.5806,-0.3294,0.0544,134895

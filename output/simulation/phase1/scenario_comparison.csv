@@ -1,0 +1,5 @@
+scenario,delta_revenue_pct,delta_margin_pct,total_revenue_base,total_revenue_opt,delta_revenue_usd,total_margin_base,total_margin_opt,delta_margin_usd,avg_price_change_pct,median_price_change_pct,avg_abs_price_change_pct,pct_price_increased,pct_price_decreased,pct_price_unchanged,avg_elasticity,n_rows,n_products
+conservador,4.84,13.72,15362415.42,16106164.13,743748.71,5725473.95,6510727.17,785253.22,6.28,4.8,6.28,87.46,2.75,9.79,-0.2324,278350,759
+moderado,8.74,25.54,15362415.42,16705206.8,1342791.38,5725473.95,7187648.28,1462174.33,11.07,10.0,11.07,96.05,2.21,1.73,-0.2324,278350,759
+agresivo,12.47,37.59,15362415.42,17278857.29,1916441.87,5725473.95,7877517.86,2152043.91,16.18,14.98,16.18,98.42,1.28,0.3,-0.2324,278350,759
+extremo,23.75,71.74,15362415.42,19010916.42,3648501.0,5725473.95,9832681.78,4107207.83,30.91,30.03,30.91,99.55,0.41,0.04,-0.2324,278350,759

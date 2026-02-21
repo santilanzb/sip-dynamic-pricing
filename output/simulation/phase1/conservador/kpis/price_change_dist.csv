@@ -1,0 +1,28 @@
+clase,bin,count
+03CARN     ,-30 a -20%,0
+03CARN     ,-20 a -10%,0
+03CARN     ,-10 a -5%,51
+03CARN     ,-5 a -1%,2022
+03CARN     ,Sin cambio,5777
+03CARN     ,+1 a +5%,27577
+03CARN     ,+5 a +10%,10418
+03CARN     ,+10 a +20%,120
+03CARN     ,+20 a +30%,66
+05CHAR     ,-30 a -20%,0
+05CHAR     ,-20 a -10%,0
+05CHAR     ,-10 a -5%,136
+05CHAR     ,-5 a -1%,4330
+05CHAR     ,Sin cambio,12176
+05CHAR     ,+1 a +5%,60471
+05CHAR     ,+5 a +10%,17511
+05CHAR     ,+10 a +20%,55
+05CHAR     ,+20 a +30%,257
+08FRUV     ,-30 a -20%,0
+08FRUV     ,-20 a -10%,0
+08FRUV     ,-10 a -5%,24
+08FRUV     ,-5 a -1%,1207
+08FRUV     ,Sin cambio,9184
+08FRUV     ,+1 a +5%,82441
+08FRUV     ,+5 a +10%,36107
+08FRUV     ,+10 a +20%,1111
+08FRUV     ,+20 a +30%,916

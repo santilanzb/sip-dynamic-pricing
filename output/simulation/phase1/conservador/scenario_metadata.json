@@ -1,0 +1,39 @@
+{
+  "scenario": "conservador",
+  "description": "±5%, γ=0.5 — Ajustes incrementales dentro de la variación normal de precios",
+  "phase": "Fase 1",
+  "price_range": [
+    0.95,
+    1.05
+  ],
+  "alpha": 1.0,
+  "gamma": 0.5,
+  "lam": 5.0,
+  "n_points": 50,
+  "n_rows": 278350,
+  "n_products": 759,
+  "n_branches": 4,
+  "date_min": "2025-07-01 00:00:00",
+  "date_max": "2025-12-31 00:00:00",
+  "elapsed_seconds": 130.1,
+  "kpi_summary": {
+    "total_revenue_base": 15362415.42,
+    "total_revenue_opt": 16106164.13,
+    "delta_revenue": 743748.71,
+    "delta_revenue_pct": 4.84,
+    "total_margin_base": 5725473.95,
+    "total_margin_opt": 6510727.17,
+    "delta_margin": 785253.22,
+    "delta_margin_pct": 13.72,
+    "avg_price_change_pct": 6.28,
+    "median_price_change_pct": 4.8,
+    "pct_price_increased": 87.46,
+    "pct_price_decreased": 2.75,
+    "pct_price_unchanged": 9.79,
+    "avg_elasticity": -0.2324,
+    "median_elasticity": -0.0867,
+    "n_rows": 278350,
+    "n_products": 759,
+    "n_branches": 4
+  }
+}
