@@ -47,6 +47,10 @@ config.yaml
 # Reports (optional - may want to keep some)
 # reports/
 
+# Simulation output (large files)
+output/simulation/optimization_results.parquet
+output/simulation/optimization_results.csv
+
 # Temporary files
 *.tmp
 *.temp
