@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-02-20T22:04:48.962297",
+  "alpha": 1.0,
+  "gamma": 0.1,
+  "lam": 5.0,
+  "n_points": 50,
+  "test_size": 278350,
+  "valid_branches": [
+    "SUC001",
+    "SUC002",
+    "SUC003",
+    "SUC004"
+  ],
+  "conformal_q90_halfwidth": 5.453,
+  "conformal_q80_halfwidth": 2.9315,
+  "elapsed_seconds": 314.7,
+  "kpi_summary": {
+    "total_revenue_base": 15362415.42,
+    "total_revenue_opt": 19010916.42,
+    "delta_revenue": 3648501.0,
+    "delta_revenue_pct": 23.75,
+    "total_margin_base": 5725473.95,
+    "total_margin_opt": 9832681.78,
+    "delta_margin": 4107207.83,
+    "delta_margin_pct": 71.74,
+    "avg_price_change_pct": 30.91,
+    "median_price_change_pct": 30.03,
+    "pct_price_increased": 99.55,
+    "pct_price_decreased": 0.41,
+    "pct_price_unchanged": 0.04,
+    "avg_elasticity": -0.2324,
+    "median_elasticity": -0.0867,
+    "n_rows": 278350,
+    "n_products": 759,
+    "n_branches": 4
+  }
+}
