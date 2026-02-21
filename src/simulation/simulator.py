@@ -67,7 +67,7 @@ def compute_cost_map(
 
     cost_map = (
         tmp.groupby(["producto_id", "sucursal_id"])
-        .apply(winsorize_group)
+        .apply(winsorize_group, include_groups=False)
         .rename("costo_unitario_usd")
         .reset_index()
     )

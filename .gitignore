@@ -47,9 +47,9 @@ config.yaml
 # Reports (optional - may want to keep some)
 # reports/
 
-# Simulation output (large files)
-output/simulation/optimization_results.parquet
-output/simulation/optimization_results.csv
+# Simulation output (large files — regenerate with run_optimization.py)
+output/simulation/**/optimization_results.parquet
+output/simulation/**/optimization_results.csv
 
 # Temporary files
 *.tmp

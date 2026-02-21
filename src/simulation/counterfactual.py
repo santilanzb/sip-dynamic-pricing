@@ -391,3 +391,199 @@ def generate_all_visualizations(
         plot_heatmap(heatmap_df, str(out / "heatmap_price_dayofweek.png"))
 
     print(f"   Visualizaciones guardadas en {out}/")
+
+
+# =========================================================================
+# Cross-scenario and Phase 2 visualizations
+# =========================================================================
+
+def plot_scenario_comparison(comp_df: pd.DataFrame, output_path: str):
+    """Barras comparativas de ΔRevenue y ΔMargin por escenario."""
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 6))
+
+    colors = ["#81C784", "#4CAF50", "#FF9800", "#F44336"]
+    scenarios = comp_df["scenario"].values
+    x = range(len(scenarios))
+
+    # ΔRevenue
+    vals = comp_df["delta_revenue_pct"].values
+    ax1.bar(x, vals, color=colors[:len(x)], edgecolor="black")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(scenarios, rotation=15, ha="right")
+    ax1.set_ylabel("Δ Revenue (%)")
+    ax1.set_title("Impacto en Revenue")
+    for i, v in enumerate(vals):
+        ax1.text(i, v + 0.1, f"+{v:.1f}%", ha="center", fontsize=10, fontweight="bold")
+    ax1.grid(axis="y", alpha=0.3)
+
+    # ΔMargin
+    vals2 = comp_df["delta_margin_pct"].values
+    ax2.bar(x, vals2, color=colors[:len(x)], edgecolor="black")
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(scenarios, rotation=15, ha="right")
+    ax2.set_ylabel("Δ Margen (%)")
+    ax2.set_title("Impacto en Margen")
+    for i, v in enumerate(vals2):
+        ax2.text(i, v + 0.3, f"+{v:.1f}%", ha="center", fontsize=10, fontweight="bold")
+    ax2.grid(axis="y", alpha=0.3)
+
+    # Avg |Δprice|
+    vals3 = comp_df["avg_abs_price_change_pct"].values
+    ax3.bar(x, vals3, color=colors[:len(x)], edgecolor="black")
+    ax3.set_xticks(x)
+    ax3.set_xticklabels(scenarios, rotation=15, ha="right")
+    ax3.set_ylabel("Cambio Precio Promedio |Δp/p| (%)")
+    ax3.set_title("Magnitud del Ajuste")
+    for i, v in enumerate(vals3):
+        ax3.text(i, v + 0.1, f"{v:.1f}%", ha="center", fontsize=10)
+    ax3.grid(axis="y", alpha=0.3)
+
+    fig.suptitle("Comparación de Escenarios de Optimización (Fase 1 — Test Set)", fontsize=16)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close()
+
+
+def plot_branch_breakdown(df: pd.DataFrame, output_path: str, scenario_name: str = ""):
+    """ΔRevenue y ΔMargen por sucursal."""
+    g = df.groupby("sucursal_id").agg(
+        rev_base=("revenue_base", "sum"),
+        rev_opt=("revenue_opt", "sum"),
+        mar_base=("margin_base", "sum"),
+        mar_opt=("margin_opt", "sum"),
+        n=("revenue_base", "size"),
+    ).reset_index()
+    g["delta_rev_pct"] = (g["rev_opt"] - g["rev_base"]) / g["rev_base"].clip(lower=0.01) * 100
+    g["delta_mar_pct"] = (g["mar_opt"] - g["mar_base"]) / g["mar_base"].clip(lower=0.01) * 100
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+    x = range(len(g))
+
+    c1 = ["#4CAF50" if v >= 0 else "#F44336" for v in g["delta_rev_pct"]]
+    ax1.bar(x, g["delta_rev_pct"].values, color=c1, edgecolor="black")
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(g["sucursal_id"].values)
+    ax1.set_ylabel("Δ Revenue (%)")
+    ax1.set_title("Δ Revenue por Sucursal")
+    for i, v in enumerate(g["delta_rev_pct"]):
+        ax1.text(i, v + 0.1, f"{v:+.1f}%", ha="center", fontsize=10)
+    ax1.grid(axis="y", alpha=0.3)
+
+    c2 = ["#4CAF50" if v >= 0 else "#F44336" for v in g["delta_mar_pct"]]
+    ax2.bar(x, g["delta_mar_pct"].values, color=c2, edgecolor="black")
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(g["sucursal_id"].values)
+    ax2.set_ylabel("Δ Margen (%)")
+    ax2.set_title("Δ Margen por Sucursal")
+    for i, v in enumerate(g["delta_mar_pct"]):
+        ax2.text(i, v + 0.1, f"{v:+.1f}%", ha="center", fontsize=10)
+    ax2.grid(axis="y", alpha=0.3)
+
+    title = "Impacto por Sucursal"
+    if scenario_name:
+        title += f" — {scenario_name}"
+    fig.suptitle(title, fontsize=16)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close()
+
+
+def plot_phase2_monthly(df: pd.DataFrame, output_path: str):
+    """Serie temporal mensual de ΔRevenue y ΔMargin para Phase 2."""
+    df = df.copy()
+    df["fecha"] = pd.to_datetime(df["fecha"])
+    df["mes"] = df["fecha"].dt.to_period("M")
+
+    g = df.groupby("mes").agg(
+        rev_base=("revenue_base", "sum"),
+        rev_opt=("revenue_opt", "sum"),
+        mar_base=("margin_base", "sum"),
+        mar_opt=("margin_opt", "sum"),
+        n=("revenue_base", "size"),
+    ).reset_index()
+    g["delta_rev_pct"] = (g["rev_opt"] - g["rev_base"]) / g["rev_base"].clip(lower=0.01) * 100
+    g["delta_mar_pct"] = (g["mar_opt"] - g["mar_base"]) / g["mar_base"].clip(lower=0.01) * 100
+    g["delta_rev_usd"] = g["rev_opt"] - g["rev_base"]
+    g["mes_str"] = g["mes"].astype(str)
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 9), sharex=True)
+
+    # ΔRevenue % by month
+    colors = ["#4CAF50" if v >= 0 else "#F44336" for v in g["delta_rev_pct"]]
+    ax1.bar(range(len(g)), g["delta_rev_pct"].values, color=colors, edgecolor="black", alpha=0.8)
+    ax1.axhline(g["delta_rev_pct"].mean(), color="blue", linestyle="--", alpha=0.6,
+                label=f"Promedio: {g['delta_rev_pct'].mean():+.1f}%")
+    ax1.set_ylabel("Δ Revenue (%)")
+    ax1.set_title("Fase 2 — Δ Revenue Mensual (Backtest Oct 2023 – Sep 2025)")
+    ax1.legend()
+    ax1.grid(axis="y", alpha=0.3)
+
+    # ΔRevenue USD by month
+    colors2 = ["#4CAF50" if v >= 0 else "#F44336" for v in g["delta_rev_usd"]]
+    ax2.bar(range(len(g)), g["delta_rev_usd"].values, color=colors2, edgecolor="black", alpha=0.8)
+    ax2.set_ylabel("Δ Revenue (USD)")
+    ax2.set_xlabel("Mes")
+    ax2.set_xticks(range(len(g)))
+    ax2.set_xticklabels(g["mes_str"].values, rotation=45, ha="right", fontsize=8)
+    ax2.set_title("Fase 2 — Δ Revenue Mensual en USD")
+    ax2.grid(axis="y", alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close()
+
+    return g  # Return for documentation
+
+
+def plot_scenario_by_clase(comp_rows: list, output_path: str):
+    """ΔRevenue por categoría para cada escenario (grouped bar chart)."""
+    from matplotlib.patches import Patch
+
+    # comp_rows: list of dicts with keys scenario, clase, delta_revenue_pct, delta_margin_pct
+    df = pd.DataFrame(comp_rows)
+    if len(df) == 0:
+        return
+
+    scenarios = df["scenario"].unique()
+    clases = sorted(df["clase_label"].unique())
+    n_scenarios = len(scenarios)
+    n_clases = len(clases)
+    width = 0.8 / n_scenarios
+
+    colors = ["#81C784", "#4CAF50", "#FF9800", "#F44336"]
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 6))
+
+    for i, scenario in enumerate(scenarios):
+        sub = df[df["scenario"] == scenario]
+        vals = [sub[sub["clase_label"] == c]["delta_revenue_pct"].values[0]
+                if len(sub[sub["clase_label"] == c]) > 0 else 0 for c in clases]
+        positions = [j + i * width for j in range(n_clases)]
+        ax1.bar(positions, vals, width=width, label=scenario, color=colors[i % len(colors)],
+                edgecolor="black", alpha=0.85)
+
+    ax1.set_xticks([j + width * (n_scenarios - 1) / 2 for j in range(n_clases)])
+    ax1.set_xticklabels(clases)
+    ax1.set_ylabel("Δ Revenue (%)")
+    ax1.set_title("Δ Revenue por Categoría y Escenario")
+    ax1.legend()
+    ax1.grid(axis="y", alpha=0.3)
+
+    for i, scenario in enumerate(scenarios):
+        sub = df[df["scenario"] == scenario]
+        vals = [sub[sub["clase_label"] == c]["delta_margin_pct"].values[0]
+                if len(sub[sub["clase_label"] == c]) > 0 else 0 for c in clases]
+        positions = [j + i * width for j in range(n_clases)]
+        ax2.bar(positions, vals, width=width, label=scenario, color=colors[i % len(colors)],
+                edgecolor="black", alpha=0.85)
+
+    ax2.set_xticks([j + width * (n_scenarios - 1) / 2 for j in range(n_clases)])
+    ax2.set_xticklabels(clases)
+    ax2.set_ylabel("Δ Margen (%)")
+    ax2.set_title("Δ Margen por Categoría y Escenario")
+    ax2.legend()
+    ax2.grid(axis="y", alpha=0.3)
+
+    fig.suptitle("Comparación de Escenarios por Categoría (Fase 1)", fontsize=16)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close()
