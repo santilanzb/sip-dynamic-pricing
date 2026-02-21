@@ -341,6 +341,107 @@ def add_product_features(
     return df
 
 
+def add_competition_features(
+    df: pd.DataFrame,
+    date_col: str = 'fecha',
+    cat_col: str = 'clase',
+) -> pd.DataFrame:
+    """
+    Agrega features de competencia derivadas de índices sintéticos,
+    ponderadas por participación de mercado (volumen relativo a Emporium).
+
+    Requiere:
+      - data/processed/competition_indices.parquet
+      - data/external/competition_coefficients.json (market_share weights)
+
+    Pesos de mercado (por volumen de unidades vs Emporium):
+      Gama ~3.0x → w=0.769, Plan Suárez ~0.9x → w=0.231
+
+    Features (7 nuevas, nivel CATEGORÍA-DÍA):
+    - indice_gama_cat: Ratio Gama vs Emporium para la categoría
+    - indice_plansuarez_cat: Ratio Plan Suárez vs Emporium
+    - competitividad_precio: 1 / indice_mercado — >1 = Emporium más barato
+    - gap_precio_max_comp: max(índices) - 1 — máxima brecha competitiva
+    - indice_mercado: Promedio PONDERADO por volumen de los índices
+    - presion_competitiva: Suma de (gap_precio × volumen_relativo) por competidor
+    - volatilidad_mercado_7d: Rolling std 7d del indice_mercado
+    """
+    import json as _json
+
+    print("   🏪 Features de competencia (volume-weighted)...")
+
+    indices_path = Path('data/processed/competition_indices.parquet')
+    coeff_path = Path('data/external/competition_coefficients.json')
+    if not indices_path.exists():
+        print("      ⚠️ competition_indices.parquet no encontrado. Saltando.")
+        return df
+
+    # Load market share weights
+    w_gama, w_ps = 0.769, 0.231  # defaults
+    vol_gama, vol_ps = 3.0, 0.9  # volume vs Emporium
+    if coeff_path.exists():
+        with open(coeff_path, 'r') as f:
+            coeff_data = _json.load(f)
+        ms = coeff_data.get('market_share', {})
+        cw = ms.get('competitive_weights', {})
+        w_gama = cw.get('gama', w_gama)
+        w_ps = cw.get('plansuarez', w_ps)
+        vv = ms.get('volume_vs_emporium', {})
+        vol_gama = vv.get('gama', vol_gama)
+        vol_ps = vv.get('plansuarez', vol_ps)
+    print(f"      Pesos: Gama={w_gama:.3f} ({vol_gama}x), Plan Suárez={w_ps:.3f} ({vol_ps}x)")
+
+    df = df.copy()
+    idx = pd.read_parquet(indices_path)
+    idx['fecha'] = pd.to_datetime(idx['fecha'])
+    idx = idx.rename(columns={
+        'categoria': cat_col,
+        'indice_gama': 'indice_gama_cat',
+        'indice_plansuarez': 'indice_plansuarez_cat',
+    })
+
+    # Strip whitespace from clase in both DataFrames
+    df[cat_col] = df[cat_col].astype(str).str.strip()
+    idx[cat_col] = idx[cat_col].astype(str).str.strip()
+
+    # Merge on (fecha, clase)
+    df = df.merge(idx, on=[date_col, cat_col], how='left')
+
+    # Volume-weighted market index (Gama 77%, Plan Suárez 23%)
+    df['indice_mercado'] = (
+        w_gama * df['indice_gama_cat'] + w_ps * df['indice_plansuarez_cat']
+    )
+    df['competitividad_precio'] = 1.0 / df['indice_mercado']
+    df['gap_precio_max_comp'] = (
+        df[['indice_gama_cat', 'indice_plansuarez_cat']].max(axis=1) - 1
+    )
+
+    # Competitive pressure: sum of (price_gap × volume_relative) per competitor
+    # Measures total volume-weighted price pressure competitors exert on Emporium
+    # Higher = more pressure (competitors undercut Emporium at scale)
+    # When index < 1, competitor is cheaper → (1 - index) > 0 → positive pressure
+    # When index > 1, competitor is more expensive → (1 - index) < 0 → negative (relief)
+    df['presion_competitiva'] = (
+        vol_gama * (1 - df['indice_gama_cat']) +
+        vol_ps * (1 - df['indice_plansuarez_cat'])
+    )
+
+    # Rolling volatility (7d) — by category
+    df = df.sort_values([cat_col, date_col])
+    df['volatilidad_mercado_7d'] = (
+        df.groupby(cat_col)['indice_mercado']
+        .transform(lambda x: x.rolling(7, min_periods=2).std())
+    )
+
+    # Fill NaN from initial rolling window
+    df['volatilidad_mercado_7d'] = df['volatilidad_mercado_7d'].fillna(0.0)
+
+    n_comp = df['indice_gama_cat'].notna().sum()
+    print(f"      {n_comp:,}/{len(df):,} filas con features de competencia")
+
+    return df
+
+
 def add_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Agrega features de interacción.
@@ -481,14 +582,17 @@ def engineer_features(
     
     # 9. Features de interacción
     df = add_interaction_features(df)
+
+    # 10. Features de competencia
+    df = add_competition_features(df)
     
-    # 10. Feriados
+    # 11. Feriados
     df = add_holiday_features(df)
 
-    # 11. Target
+    # 12. Target
     df = create_target(df)
     
-    # 11. Filtrar filas con suficientes datos históricos
+    # 13. Filtrar filas con suficientes datos históricos
     # (eliminar primeros 30 días por producto donde no hay lags completos)
     print("\n🧹 Limpiando datos...")
     initial_count = len(df)
@@ -524,10 +628,11 @@ def engineer_features(
     
     # Categorías de features
     temporal = [c for c in feature_cols if any(x in c for x in ['dia_', 'mes', 'año', 'semana', 'trimestre', 'fin_semana', 'quincena', 'inicio_mes', 'fin_mes'])]
-    precio = [c for c in feature_cols if 'precio' in c]
+    precio = [c for c in feature_cols if 'precio' in c and 'competitividad' not in c and 'gap_precio' not in c]
     demanda = [c for c in feature_cols if 'unidades' in c]
     promo = [c for c in feature_cols if 'promo' in c or 'descuento' in c]
     producto = [c for c in feature_cols if any(x in c for x in ['perecedero', 'rotacion', 'variabilidad', 'cv_'])]
+    competencia = [c for c in feature_cols if any(x in c for x in ['indice_gama', 'indice_plansuarez', 'indice_mercado', 'competitividad', 'gap_precio_max', 'volatilidad_mercado', 'presion_competitiva'])]
     
     print(f"\n   Por categoría:")
     print(f"   - Temporales: {len(temporal)}")
@@ -535,6 +640,7 @@ def engineer_features(
     print(f"   - Demanda (lags/rolling): {len(demanda)}")
     print(f"   - Promoción: {len(promo)}")
     print(f"   - Producto: {len(producto)}")
+    print(f"   - Competencia: {len(competencia)}")
     
     print("\n" + "=" * 70)
     print("✅ FEATURE ENGINEERING COMPLETADO")

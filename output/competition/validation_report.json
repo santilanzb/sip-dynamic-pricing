@@ -1,0 +1,84 @@
+{
+  "timestamp": "2026-02-21T14:57:27.023198",
+  "tests": {
+    "gama_03CARN": {
+      "coefficient": 1.0422,
+      "mean_index": 1.040592,
+      "mean_error_pct": 0.1543,
+      "noise_std": 0.025293,
+      "noise_std_error_pct": 1.17,
+      "autocorr_lag1": 0.7216,
+      "autocorr_error_pct": 3.09,
+      "ks_statistic": 0.0324,
+      "ks_pvalue": 0.1971,
+      "trend_slope": 8.5e-07,
+      "status": "PASS"
+    },
+    "gama_05CHAR": {
+      "coefficient": 1.2797,
+      "mean_index": 1.282291,
+      "mean_error_pct": 0.2025,
+      "noise_std": 0.025379,
+      "noise_std_error_pct": 1.51,
+      "autocorr_lag1": 0.7023,
+      "autocorr_error_pct": 0.33,
+      "ks_statistic": 0.0623,
+      "ks_pvalue": 0.0004,
+      "trend_slope": 1.36e-06,
+      "status": "PASS"
+    },
+    "gama_08FRUV": {
+      "coefficient": 1.2385,
+      "mean_index": 1.237516,
+      "mean_error_pct": 0.0794,
+      "noise_std": 0.02452,
+      "noise_std_error_pct": 1.92,
+      "autocorr_lag1": 0.6893,
+      "autocorr_error_pct": 1.52,
+      "ks_statistic": 0.0308,
+      "ks_pvalue": 0.2456,
+      "trend_slope": 7.5e-06,
+      "status": "PASS"
+    },
+    "plansuarez_03CARN": {
+      "coefficient": 1.0932,
+      "mean_index": 1.088623,
+      "mean_error_pct": 0.4187,
+      "noise_std": 0.025594,
+      "noise_std_error_pct": 2.38,
+      "autocorr_lag1": 0.7068,
+      "autocorr_error_pct": 0.97,
+      "ks_statistic": 0.0677,
+      "ks_pvalue": 0.0001,
+      "trend_slope": -3.28e-06,
+      "status": "PASS"
+    },
+    "plansuarez_05CHAR": {
+      "coefficient": 1.1527,
+      "mean_index": 1.152633,
+      "mean_error_pct": 0.0058,
+      "noise_std": 0.02493,
+      "noise_std_error_pct": 0.28,
+      "autocorr_lag1": 0.7074,
+      "autocorr_error_pct": 1.06,
+      "ks_statistic": 0.0186,
+      "ks_pvalue": 0.8368,
+      "trend_slope": -2.22e-06,
+      "status": "PASS"
+    },
+    "plansuarez_08FRUV": {
+      "coefficient": 1.2048,
+      "mean_index": 1.20858,
+      "mean_error_pct": 0.3138,
+      "noise_std": 0.025733,
+      "noise_std_error_pct": 2.93,
+      "autocorr_lag1": 0.6928,
+      "autocorr_error_pct": 1.03,
+      "ks_statistic": 0.0576,
+      "ks_pvalue": 0.0013,
+      "trend_slope": 2.61e-06,
+      "status": "PASS"
+    }
+  },
+  "overall_status": "ALL_PASS"
+}

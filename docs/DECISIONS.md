@@ -1,6 +1,6 @@
 # Decisiones Técnicas y de Negocio - SIP Dynamic Pricing
 
-**Última actualización:** 2026-02-20
+**Última actualización:** 2026-02-21
 **Autores:** Santiago Lanz, Diego Blanco
 
 Este documento registra todas las decisiones críticas tomadas durante el desarrollo del sistema, con su justificación y sus implicaciones para el modelo.
@@ -201,8 +201,63 @@ WMAPE_revenue = Σ(|y - ŷ| × ingreso) / Σ(y × ingreso)
 
 ---
 
+## 6. Datos de Competencia
+
+### 6.1 Coeficientes de Precio: Blending Scraped + Expert
+**Decisión:** Ponderar 65% scraping / 35% estimación experta.
+
+**Justificación:**
+- El scraping captura precios reales pero de un solo punto temporal con muestra limitada (71-52 matches)
+- Las estimaciones expertas (del stakeholder) proveen ancla de negocio pero son subjetivas
+- El peso 65/35 da prioridad a los datos observados sin descartarlos por completo frente a la señal empírica
+- Se usó **mediana** (no media) como agregación por categoría para robustez ante outliers
+
+**Alternativas consideradas:**
+- 100% scraping: Riesgo de sesgo por muestra de un solo día
+- 100% experto: Ignora la señal de datos reales
+- 50/50: Infrapondera el dato empírico
+
+### 6.2 Precios de Referencia: Recientes vs Históricos
+**Decisión:** Usar precios de los últimos 30 días de `fact_ventas` en lugar de `precio_medio_usd` de `dim_producto`.
+
+**Justificación:** El precio medio histórico incluye períodos anteriores donde los precios eran significativamente más bajos (efecto de inflación y ajustes de costos). Usar precios recientes evita inflar los coeficientes en 10-16%. Los competidores fueron scraped el 2026-02-21, por lo que la comparación debe ser contra precios contemporáneos de Emporium.
+
+### 6.3 Índice de Mercado: Ponderado por Volumen vs Media Simple
+**Decisión:** Ponderar `indice_mercado` por volumen relativo de unidades (Gama 76.9%, Plan Suárez 23.1%).
+
+**Justificación:** Gama vende ~3× más unidades que Emporium vs Plan Suárez ~0.9×. Un cambio de precio en Gama impacta mucho más la dinámica competitiva que el mismo cambio en Plan Suárez. La media simple (50/50) sobreponderaría el efecto de Plan Suárez en ~2.3×.
+
+**Pesos derivados:** vol_i / Σ(vol_j) donde vol_gama=3.0, vol_ps=0.9.
+
+### 6.4 Modelo Sintético: AR(1) con φ=0.7, σ=0.025
+**Decisión:** Usar AR(1) estacionario para generar variación temporal de índices.
+
+**Justificación:**
+- φ=0.7: Autocorrelación moderadamente alta — precios de supermercado cambian gradualmente, no saltan aleatoriamente
+- σ=0.025: Rango de variación del ±5% (2σ) alrededor del coeficiente calibrado, consistente con la variación diaria observada en precios de Emporium (P99 = ±5.2%)
+- AR(1) vs white noise: Produce series suaves que se asemejan a dinámicas de precios reales
+- Nivel categoría-día vs producto-día: Refleja que la política de precios competidora varía por categoría, no por SKU individual
+
+### 6.5 Umbral de Ablación: ≥0.5pp WMAPE
+**Decisión:** Adoptar Model B solo si WMAPE mejora ≥0.5 puntos porcentuales.
+
+**Justificación:**
+- El modelo baseline (23.61% WMAPE) tiene un margen de variación inherente de ~0.1-0.2pp entre re-entrenamientos (GPU non-determinism, variación de threshold calibration)
+- Un threshold de 0.5pp está ~3× por encima de esta variación natural, asegurando que la mejora es señal y no ruido
+- Mejoras menores no justifican la complejidad adicional de mantener 7 features sintéticas en producción
+
+**Resultado:** ΔWMAPE = +0.10pp → MARGINAL_IMPROVEMENT → Se mantiene Model A.
+
+### 6.6 Signo de `presion_competitiva`
+**Decisión:** presion = Σ(vol_i × (1 − indice_i)), donde mayor = más presión.
+
+**Justificación:** Cuando un competidor es más barato (indice < 1), (1 − indice) es positivo, contribuyendo presión positiva. Cuando es más caro (indice > 1), contribuye presión negativa (alivio para Emporium). Esta convención alinea el signo con la interpretación intuitiva del término "presión competitiva" y facilita la interpretabilidad de SHAP values en la tesis.
+
+---
+
 ## Registro de Cambios
 
 | Fecha | Cambio | Autor |
 |-------|--------|-------|
 | 2026-02-20 | Documento inicial con todas las decisiones | Diego Blanco |
+| 2026-02-21 | Fase 6: Decisiones de competencia (§6) | Diego Blanco |

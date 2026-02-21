@@ -1,0 +1,158 @@
+{
+  "timestamp": "2026-02-21T15:32:18.491883",
+  "decision": "MARGINAL_IMPROVEMENT",
+  "decision_text": "⚖️ WMAPE mejora 0.10pp (<0.5pp threshold). Mejora marginal. Mantener Model A; features de competencia aportan señal limitada con datos sintéticos.",
+  "delta_wmape_pp": 0.1043,
+  "model_a": {
+    "name": "LightGBM bietápico SIN competencia",
+    "n_features": 52,
+    "metrics": {
+      "MAE": 3.161491,
+      "MSE": 88.35265,
+      "RMSE": 9.399609,
+      "R2": 0.93744,
+      "RMSLE": 0.312644,
+      "MAPE": 47.339079,
+      "SMAPE": 45.006686,
+      "WMAPE": 23.673409,
+      "MdAE": 0.892595,
+      "MPE": 17.923361,
+      "MBE": -0.712351,
+      "OverForecastRate": 55.025328,
+      "MASE": 0.570631,
+      "train_time_sec": 103.424287
+    },
+    "by_category": [
+      {
+        "clase": "05CHAR",
+        "n": 96977,
+        "WMAPE": 28.774113849084554,
+        "MAE": 1.6411371659944152
+      },
+      {
+        "clase": "03CARN",
+        "n": 46478,
+        "WMAPE": 25.374854759493793,
+        "MAE": 6.019400891229652
+      },
+      {
+        "clase": "08FRUV",
+        "n": 134895,
+        "WMAPE": 21.39499400854341,
+        "MAE": 3.2697921412887427
+      }
+    ],
+    "by_sucursal": [
+      {
+        "sucursal_id": "SUC004",
+        "n": 67862,
+        "WMAPE": 26.268140016765113,
+        "MAE": 2.901995002326405
+      },
+      {
+        "sucursal_id": "SUC002",
+        "n": 73232,
+        "WMAPE": 23.589154169045507,
+        "MAE": 3.3463259590742114
+      },
+      {
+        "sucursal_id": "SUC003",
+        "n": 63572,
+        "WMAPE": 22.85566187814077,
+        "MAE": 3.460008666139304
+      },
+      {
+        "sucursal_id": "SUC001",
+        "n": 73684,
+        "WMAPE": 22.565283123614048,
+        "MAE": 2.959229765780253
+      }
+    ]
+  },
+  "model_b": {
+    "name": "LightGBM bietápico CON competencia",
+    "n_features": 59,
+    "competition_features": [
+      "indice_gama_cat",
+      "indice_plansuarez_cat",
+      "competitividad_precio",
+      "gap_precio_max_comp",
+      "indice_mercado",
+      "presion_competitiva",
+      "volatilidad_mercado_7d"
+    ],
+    "competition_importance_pct": 10.0,
+    "metrics": {
+      "MAE": 3.147557,
+      "MSE": 87.216621,
+      "RMSE": 9.338984,
+      "R2": 0.938245,
+      "RMSLE": 0.3122,
+      "MAPE": 47.009401,
+      "SMAPE": 44.908987,
+      "WMAPE": 23.569077,
+      "MdAE": 0.888691,
+      "MPE": 17.286881,
+      "MBE": -0.670622,
+      "OverForecastRate": 54.741512,
+      "MASE": 0.56796,
+      "train_time_sec": 112.226167
+    },
+    "by_category": [
+      {
+        "clase": "05CHAR",
+        "n": 96977,
+        "WMAPE": 28.794749944757015,
+        "MAE": 1.6423141497148077
+      },
+      {
+        "clase": "03CARN",
+        "n": 46478,
+        "WMAPE": 25.364989115256222,
+        "MAE": 6.017060571717322
+      },
+      {
+        "clase": "08FRUV",
+        "n": 134895,
+        "WMAPE": 21.206612611086555,
+        "MAE": 3.2410018545177603
+      }
+    ],
+    "by_sucursal": [
+      {
+        "sucursal_id": "SUC004",
+        "n": 67862,
+        "WMAPE": 26.057085491904424,
+        "MAE": 2.878678575050885
+      },
+      {
+        "sucursal_id": "SUC002",
+        "n": 73232,
+        "WMAPE": 23.497433559697196,
+        "MAE": 3.333314595722866
+      },
+      {
+        "sucursal_id": "SUC003",
+        "n": 63572,
+        "WMAPE": 22.781746621942638,
+        "MAE": 3.448818991197095
+      },
+      {
+        "sucursal_id": "SUC001",
+        "n": 73684,
+        "WMAPE": 22.499899445813945,
+        "MAE": 2.950655296562104
+      }
+    ]
+  },
+  "hyperparameters": {
+    "learning_rate": 0.03908294667479063,
+    "num_leaves": 106,
+    "min_child_samples": 51,
+    "subsample": 0.6023052293389355,
+    "colsample_bytree": 0.6547235997514183,
+    "reg_alpha": 7.708035943595551,
+    "reg_lambda": 3.6178661323367485e-07
+  },
+  "demand_threshold": 1.0
+}

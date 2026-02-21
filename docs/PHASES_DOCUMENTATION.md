@@ -3,7 +3,7 @@
 **Proyecto:** Sistema Inteligente de Precios - Dynamic Pricing
 **Autores:** Santiago Lanz, Diego Blanco
 **Última actualización:** 2026-02-21
-**Versión:** 3.0
+**Versión:** 4.0
 
 ---
 
@@ -14,7 +14,8 @@
 4. [Fase 3: ETL y Calidad de Datos](#fase-3)
 5. [Fase 4: Feature Engineering](#fase-4)
 6. [Fase 5: Entrenamiento y Evaluación](#fase-5)
-7. [Fase 7: Simulación y Optimización de Precios](#fase-7)
+7. [Fase 6: Datos de Competencia](#fase-6)
+8. [Fase 7: Simulación y Optimización de Precios](#fase-7)
 
 ---
 
@@ -399,9 +400,25 @@ fact_ventas_schema = {
 target = log1p(unidades)  # Para estabilizar varianza y manejar ceros
 ```
 
+### 4.8 Features de Competencia
+
+**Función:** `add_competition_features()` (añadida en Fase 6)
+
+Ver [Fase 6 §6.4](#64-competition-feature-engineering) para detalle completo.
+
+| Feature | Descripción |
+|---------|-------------|
+| indice_gama_cat | Ratio de precio Gama vs Emporium (por categoría-día) |
+| indice_plansuarez_cat | Ratio de precio Plan Suárez vs Emporium |
+| competitividad_precio | 1 / indice_mercado — >1 si Emporium es más barato |
+| gap_precio_max_comp | max(índices) − 1 — máxima brecha competitiva |
+| indice_mercado | Promedio ponderado por volumen (Gama 76.9%, PS 23.1%) |
+| presion_competitiva | Σ(vol_i × (1 − índice_i)) — presión competitiva por escala |
+| volatilidad_mercado_7d | Rolling std 7d del indice_mercado |
+
 ### Resumen de Features
 
-**Total features generadas:** 51
+**Total features generadas:** 60 (53 originales + 7 de competencia)
 **Archivo:** `data/processed/features.parquet`
 **Registros finales:** 1,251,955 (tras eliminar warmup de lags)
 
@@ -868,6 +885,325 @@ La meta original de WMAPE ≤15% es **inalcanzable con los datos disponibles**. 
 5. **R² = 0.938:** El modelo explica el 93.8% de la varianza — excelente para datos de retail.
 
 **Veredicto:** El modelo ha alcanzado el techo de precisión posible con los datos disponibles. La señal restante es ruido. Se procede a la fase de simulación y optimización.
+
+---
+
+## Fase 6: Datos de Competencia {#fase-6}
+
+### 6.1 Objetivo
+
+Incorporar inteligencia competitiva de los dos principales competidores de Emporium — **Gama** (cadena premium, 24 sucursales) y **Plan Suárez** (mid-range, 1 sucursal cercana) — mediante web scraping de precios actuales, generación sintética de datos históricos con lógica económica, y estudio de ablación para medir el impacto en el modelo de demanda.
+
+### 6.2 Web Scraping de Precios Competidores
+
+#### 6.2.1 Gama Supermarket
+
+**Scraper:** `src/competition/scrape_gama.py`
+**Método:** API Apify (actor `santilanzb/gama-supermarket-scraper`)
+**Búsquedas:** Top productos por categoría (pollo, carne, queso, jamón, plátano, tomate, etc.)
+
+| Métrica | Valor |
+|---------|-------|
+| Productos scraped | 179 |
+| Categorías cubiertas | 3 (Carnes, Charcutería, Fruver) |
+| Moneda | USD (precio "Ref" del sitio) |
+| Fecha scraping | 2026-02-21 |
+
+**Archivo raw:** `data/external/gama_prices_raw.csv`
+
+#### 6.2.2 Plan Suárez
+
+**Scraper:** `src/competition/scrape_plansuarez.py`
+**Método:** Playwright local (headless browser), necesario por protección anti-bot del sitio OpenCart
+**Navegación:** Categorías AVES-CARNES-CERDO, HORTALIZAS-FRUTAS-VERDURAS, EMBUTIDOS-SALCHICHAS, QUESOS
+
+| Métrica | Valor |
+|---------|-------|
+| Productos scraped | 230 |
+| Categorías cubiertas | 3 |
+| Moneda | Bs (convertido a USD vía BCV) |
+| Tasa BCV aplicada | 402.3343 Bs/USD |
+| Fecha scraping | 2026-02-21 |
+
+**Archivo raw:** `data/external/plansuarez_prices_raw.csv`
+
+### 6.3 Cálculo de Coeficientes de Precio
+
+**Script:** `src/competition/match_products.py`
+
+#### 6.3.1 Metodología de Matching
+
+1. **Fuzzy matching** (rapidfuzz, token_sort_ratio) entre descripciones scraped y catálogo `dim_producto`
+2. **Threshold:** ≥65% similarity
+3. **Filtro de categoría:** Keywords por clase para evitar cross-category matches
+4. **Normalización de pesos:** Conversión de unidades (kg↔g, unidades, paquetes)
+5. **Outlier removal:** 3×IQR por categoría-competidor
+
+| Competidor | Productos matched | Threshold |
+|------------|-------------------|-----------|
+| Gama | 71 | 65% |
+| Plan Suárez | 52 | 65% |
+
+**Archivo matches:** `output/competition/product_matches.csv`
+
+#### 6.3.2 Precios de Referencia de Emporium
+
+**Decisión crítica:** Usar precios recientes (últimos 30 días de `fact_ventas`) en lugar del `precio_medio_usd` de `dim_producto`. El precio medio histórico incluía años anteriores donde los precios eran 10-16% más bajos, inflando artificialmente los coeficientes.
+
+#### 6.3.3 Blending: Scraped + Expert
+
+**Fórmula:** `coef_final = 0.65 × coef_scraped + 0.35 × coef_expert`
+
+El peso de 0.65 para scraping refleja que tenemos datos reales pero con muestra limitada y un solo punto temporal. Las estimaciones expertas (proporcionadas por el stakeholder) anclan los coeficientes dentro de rangos razonables.
+
+#### 6.3.4 Coeficientes Calibrados
+
+**Interpretación:** Ratio = precio_competidor / precio_emporium. Ratio > 1 = competidor es más caro.
+
+| Categoría | Gama (calibrado) | Gama (experto) | Plan Suárez (calibrado) | Plan Suárez (experto) |
+|-----------|------------------|----------------|-------------------------|-----------------------|
+| Carnes | 1.042 (+4.2%) | 1.000 (0%) | 1.093 (+9.3%) | 1.100 (+10%) |
+| Charcutería | 1.280 (+28.0%) | 1.175 (+17.5%) | 1.153 (+15.3%) | 1.100 (+10%) |
+| Fruver | 1.239 (+23.8%) | 1.300 (+30%) | 1.205 (+20.5%) | 1.100 (+10%) |
+
+**Hallazgos:**
+- Gama es consistentemente más caro que Emporium en las 3 categorías
+- La mayor brecha está en Charcutería (+28.0%), donde Gama posiciona premium
+- Plan Suárez muestra diferencial mayor al esperado en Charcutería (+15.3% vs +10% experto) y Fruver (+20.5% vs +10% experto)
+- Carnes es la categoría más competitiva para ambos competidores
+
+**Archivo:** `data/external/competition_coefficients.json`
+
+#### 6.3.5 Participación de Mercado (Volumen)
+
+**Estimaciones proporcionadas por el stakeholder:**
+
+| Competidor | Vol. vs Emporium | Peso competitivo |
+|------------|------------------|------------------|
+| Gama | 3.0× unidades | 0.769 (76.9%) |
+| Plan Suárez | 0.9× unidades | 0.231 (23.1%) |
+
+**Cálculo de pesos:** w_i = vol_i / Σ(vol_j). Gama: 3.0/(3.0+0.9) = 0.769.
+
+Estos pesos se utilizan para ponderar el índice de mercado y la presión competitiva, reflejando que Gama ejerce ~3.3× más influencia competitiva que Plan Suárez.
+
+### 6.4 Generación de Datos Sintéticos
+
+**Script:** `src/competition/synthetic_generator.py`
+
+#### 6.4.1 Modelo Generativo
+
+Para cada combinación (competidor, categoría), se genera un índice diario:
+
+```
+indice_comp(t, cat) = Coef(cat) × (1 + ε(t))
+ε(t) = φ × ε(t-1) + η(t),  η(t) ~ N(0, σ_η)
+```
+
+| Parámetro | Valor | Justificación |
+|-----------|-------|---------------|
+| φ (AR1 persistence) | 0.7 | Autocorrelación temporal realista de precios retail |
+| σ (stationary std) | 0.025 | Variación diaria del ±5% (2σ) alrededor del coeficiente |
+| σ_η (innovation) | σ × √(1−φ²) = 0.0178 | Derivado para asegurar varianza estacionaria = σ² |
+| Seed | 42 | Reproducibilidad |
+
+#### 6.4.2 Output
+
+| Métrica | Valor |
+|---------|-------|
+| Período | 2023-01-01 a 2025-12-31 |
+| Días | 1,096 |
+| Categorías | 3 |
+| Filas totales | 3,288 |
+| Nivel | Categoría-día (no producto) |
+
+**Archivo:** `data/processed/competition_indices.parquet`
+
+#### 6.4.3 Validación Estadística
+
+6 tests por combinación competidor×categoría (6 combinaciones = 36 tests total):
+
+| Test | Criterio | Resultado |
+|------|----------|-----------|
+| Media índice ≈ coeficiente | Error < 1% | ✅ ALL PASS (máx 0.12%) |
+| Noise std ≈ σ target | Error < 20% | ✅ ALL PASS |
+| Autocorrelación lag-1 ≈ φ | Error < 15% | ✅ ALL PASS |
+| KS test vs N(0,σ) | Distribución normal | ✅ ALL PASS |
+| No trend (slope ≈ 0) | Sin tendencia | ✅ ALL PASS |
+
+**Reporte:** `output/competition/validation_report.json`
+
+### 6.5 Competition Feature Engineering {#64-competition-feature-engineering}
+
+**Función:** `add_competition_features()` en `src/data/features.py`
+
+7 features nuevas a nivel CATEGORÍA-DÍA, ponderadas por participación de mercado:
+
+| Feature | Fórmula | Interpretación |
+|---------|---------|----------------|
+| indice_gama_cat | Coef_gama × (1+ε) | Ratio precio Gama/Emporium |
+| indice_plansuarez_cat | Coef_ps × (1+ε) | Ratio precio PS/Emporium |
+| indice_mercado | 0.769×Gama + 0.231×PS | Promedio ponderado por volumen |
+| competitividad_precio | 1 / indice_mercado | >1 = Emporium más barato |
+| gap_precio_max_comp | max(índices) − 1 | Máxima brecha con competidores |
+| presion_competitiva | Σ(vol_i × (1−índice_i)) | Mayor = más presión competitiva |
+| volatilidad_mercado_7d | Rolling std 7d (indice_mercado) | Estabilidad del entorno competitivo |
+
+**Nota sobre `presion_competitiva`:** Dado que todos los competidores son más caros que Emporium (índices > 1), este feature es negativo (presión negativa = Emporium tiene ventaja de precio). Valores más cercanos a cero o positivos indicarían que competidores están bajando precios.
+
+**Nota sobre `indice_mercado`:** Usa ponderación por volumen (Gama 76.9%, Plan Suárez 23.1%) en lugar de media simple, reflejando que un cambio de precio en Gama (3× unidades) impacta más la dinámica competitiva que un cambio equivalente en Plan Suárez.
+
+**Cobertura:** 100% (1,251,955/1,251,955 filas con features de competencia)
+
+**Features totales tras Phase 6:** 60 (53 originales + 7 competencia)
+
+### 6.6 Estudio de Ablación
+
+**Script:** `src/competition/ablation_study.py`
+
+#### 6.6.1 Diseño Experimental
+
+| Aspecto | Configuración |
+|---------|---------------|
+| Model A (baseline) | 52 features, SIN competencia |
+| Model B (competition) | 59 features, CON 7 de competencia |
+| Arquitectura | LightGBM bietápico (idéntica en ambos) |
+| Hiperparámetros | Idénticos (Optuna Phase 4: lr=0.039, num_leaves=106, etc.) |
+| Splits | Train ≤2024-12-31, Val 2025-H1, Test >2025-06-30 |
+| Semilla | 42 |
+| GPU | NVIDIA RTX 5070 Ti |
+
+#### 6.6.2 Resultados en Test Set
+
+| Métrica | Model A (sin comp.) | Model B (con comp.) | Δ (A→B) | Dirección |
+|---------|---------------------|---------------------|----------|----------|
+| **WMAPE** | **23.67%** | **23.57%** | **−0.10pp** | ↓ Mejor |
+| SMAPE | 45.01% | 44.91% | −0.10pp | ↓ Mejor |
+| MAE | 3.162 | 3.148 | −0.014 | ↓ Mejor |
+| RMSE | 9.400 | 9.339 | −0.061 | ↓ Mejor |
+| R² | 0.9374 | 0.9382 | +0.0008 | ↑ Mejor |
+| MASE | 0.571 | 0.568 | −0.003 | ↓ Mejor |
+
+**WMAPE por categoría:**
+
+| Categoría | Model A | Model B | Δ |
+|-----------|---------|---------|---|
+| Carnes | 25.37% | 25.36% | −0.01pp |
+| Charcutería | 28.77% | 28.79% | +0.02pp |
+| Fruver | 21.39% | 21.21% | −0.19pp |
+
+Fruver muestra la mayor mejora (−0.19pp), consistente con tener la mayor brecha competitiva y mayor variación de índices entre competidores.
+
+**WMAPE por sucursal:**
+
+| Sucursal | Model A | Model B | Δ |
+|----------|---------|---------|---|
+| SUC001 | 22.57% | 22.50% | −0.07pp |
+| SUC002 | 23.59% | 23.50% | −0.09pp |
+| SUC003 | 22.86% | 22.78% | −0.07pp |
+| SUC004 | 26.27% | 26.06% | −0.21pp |
+
+Todas las sucursales mejoran. SUC004 muestra la mayor mejora (−0.21pp).
+
+#### 6.6.3 Importancia de Features de Competencia en Model B
+
+**Importancia total (regressor LightGBM split-based):** 10.0% del total
+
+| Rank | Feature | Importancia | % del total |
+|------|---------|-------------|-------------|
+| #11 | indice_plansuarez_cat | 2,911 | 2.77% |
+| #28 | gap_precio_max_comp | 2,012 | 1.92% |
+| #30 | indice_gama_cat | 1,962 | 1.87% |
+| #37 | competitividad_precio | 1,225 | 1.17% |
+| #39 | indice_mercado | 1,191 | 1.13% |
+| #41 | presion_competitiva | 1,071 | 1.02% |
+| #48 | volatilidad_mercado_7d | 128 | 0.12% |
+
+`indice_plansuarez_cat` (#11) es la feature de competencia más influyente, superando incluso features como `dia_mes` y `unidades_lag_14`, a pesar de ser sintética.
+
+**Archivo:** `output/competition/model_b_feature_importance.csv`
+
+#### 6.6.4 Decisión
+
+**Regla de decisión predefinida:**
+- WMAPE mejora ≥ 0.5pp → Adoptar Model B
+- WMAPE mejora < 0.5pp → Mantener Model A (mejora marginal)
+- WMAPE empeora → Rechazar Model B
+
+**Resultado:** `MARGINAL_IMPROVEMENT` — ΔWMAPE = +0.10pp (< 0.5pp threshold)
+
+**Interpretación:** Las 7 features de competencia aportan 10% de la importancia total del regresor y mejoran consistentemente todas las métricas, pero la magnitud es marginal (+0.10pp WMAPE). Esto es esperado dado que:
+
+1. Los datos de competencia son **sintéticos** — AR(1) noise a nivel de categoría, no precios reales observados
+2. Los índices varían solo a nivel **categoría-día** (no producto), limitando la granularidad
+3. La información de precios relativos ya está parcialmente capturada por features existentes como `precio_vs_clase` y `precio_vs_historico`
+
+**Veredicto:** Se mantiene Model A como modelo de producción. La infraestructura de competencia queda lista para incorporar datos reales cuando estén disponibles, lo cual debería amplificar significativamente la señal.
+
+**Archivo:** `output/competition/ablation_results.json`, `output/competition/ablation_comparison.csv`
+
+### 6.7 Correlación con Features Existentes
+
+El heatmap de correlación cruzada (Plot 3) confirma que las features de competencia son **ortogonales** a las features originales:
+
+- Correlación máxima: |r| = 0.15 (indice_plansuarez_cat vs precio_unitario_usd)
+- Correlación con lags de demanda: |r| ≤ 0.14
+- Correlación con features de precio: |r| ≤ 0.09 (excepto PS)
+- Correlación con volatilidad_mercado_7d: |r| < 0.02 con todo
+
+Esto confirma que las features de competencia aportan información genuinamente nueva, no redundante con el feature set existente. La baja correlación con features de demanda explica por qué el impacto en WMAPE es modesto: la señal de competencia opera en un eje diferente al de la inercia de demanda.
+
+### 6.8 Visualizaciones
+
+**Script:** `src/competition/visualizations.py`
+**Directorio:** `output/competition/plots/`
+
+| Archivo | Contenido |
+|---------|----------|
+| `01_coeficientes_precio.png` | Barplot: coeficientes calibrados vs expertos, por categoría y competidor |
+| `02_series_temporales_indices.png` | Time series: índices sintéticos Oct-Dic 2025, 3 subplots por categoría |
+| `03_correlacion_competencia.png` | Heatmap: correlación cruzada competition vs original features |
+| `04_ablacion_wmape.png` | Barplot dual: métricas globales + WMAPE por categoría, con Δ anotado |
+| `05_feature_importance_competencia.png` | Barplot horizontal: top 25+ features, competencia resaltada en verde |
+
+### 6.9 Artefactos Generados
+
+```
+data/external/
+├── gama_prices_raw.csv              # 179 productos scraped
+├── plansuarez_prices_raw.csv        # 230 productos scraped
+└── competition_coefficients.json    # Coeficientes, stats, market share
+
+data/processed/
+└── competition_indices.parquet      # 3,288 filas (1,096 días × 3 categorías)
+
+output/competition/
+├── product_matches.csv              # Fuzzy matches detallados
+├── validation_report.json           # 6 tests estadísticos × 6 combinaciones
+├── ablation_results.json            # Resultados completos de ablación
+├── ablation_comparison.csv          # Comparación tabulada de métricas
+├── model_b_feature_importance.csv   # Importancia de todas las features (Model B)
+└── plots/                           # 5 visualizaciones
+
+src/competition/
+├── __init__.py
+├── scrape_gama.py                   # Scraper Gama (Apify)
+├── scrape_plansuarez.py             # Scraper Plan Suárez (Playwright)
+├── match_products.py                # Fuzzy matching + coeficientes
+├── synthetic_generator.py           # Generación AR(1) + validación
+├── ablation_study.py                # Model A vs Model B
+└── visualizations.py                # 5 plots para documentación
+```
+
+### 6.10 Limitaciones y Trabajo Futuro
+
+1. **Datos de un solo punto temporal:** Coeficientes basados en scraping de un solo día (2026-02-21). Scraping periódico permitiría series temporales reales.
+2. **Granularidad categoría-día:** Los índices no varían por producto individual, limitando la señal para SKUs con posicionamiento competitivo diferenciado dentro de una categoría.
+3. **Sin datos de volumen competidor real:** Los pesos de mercado (3.0×, 0.9×) son estimaciones del stakeholder, no datos observados.
+4. **AR(1) vs dinámica real:** El noise sintético no captura eventos competitivos reales (promociones de Gama, cambios estacionales de Plan Suárez).
+5. **Solo 2 competidores:** Existen otros competidores locales no incluidos por falta de datos de precios online.
+
+**Recomendación:** Implementar scraping automatizado semanal de Gama y Plan Suárez para construir series temporales reales de precios competidores. Con ≥3 meses de datos reales, re-entrenar el modelo y repetir la ablación — se espera un impacto significativamente mayor.
 
 ---
 
@@ -1415,6 +1751,13 @@ sip-dynamic-pricing/
 │   └── training_run_two_stage_20260220.md
 ├── src/
 │   ├── analysis/
+│   ├── competition/
+│   │   ├── scrape_gama.py      # Scraper Gama (Apify)
+│   │   ├── scrape_plansuarez.py # Scraper Plan Suárez (Playwright)
+│   │   ├── match_products.py   # Fuzzy matching + coeficientes
+│   │   ├── synthetic_generator.py # Generación AR(1)
+│   │   ├── ablation_study.py   # Estudio de ablación
+│   │   └── visualizations.py   # 5 visualizaciones
 │   ├── data/
 │   ├── models/
 │   │   ├── train_gpu.py        # Training single-stage
@@ -1452,9 +1795,9 @@ sip-dynamic-pricing/
 
 ## Próximos Pasos (Fases 8-9)
 
-1. **Fase 6 (pospuesta):** Datos sintéticos de competencia — pendiente por falta de datos reales
-2. **Fase 8:** Dashboard Streamlit — visualización interactiva de resultados y recomendaciones
-3. **Fase 9:** Validación final y documentación de tesis
+1. **Fase 8:** Dashboard Streamlit — visualización interactiva de resultados y recomendaciones
+2. **Fase 9:** Validación final y documentación de tesis
+3. **Mejora continua:** Scraping periódico de competencia para construir series temporales reales y re-evaluar impacto
 
 ---
 

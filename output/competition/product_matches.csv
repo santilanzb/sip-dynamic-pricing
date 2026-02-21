@@ -1,0 +1,124 @@
+﻿competidor,categoria,nombre_comp,nombre_comp_norm,nombre_emporium,nombre_emporium_norm,match_score,precio_comp_raw_usd,precio_comp_norm_usd,precio_emporium_usd,price_adjustment,ratio,search_term
+gama,08FRUV,"CAMBUR MANZANO 1,300 KG",cambur manzano,CAMBUR MANZANO,cambur manzano,100.0,1.63,1.2538,1.45,scaled 1.300kg→1kg,0.8647,cambur
+gama,08FRUV,CEBOLLA MORADA 500 GR,cebolla morada,CEBOLLA MORADA,cebolla morada,100.0,1.87,3.74,1.89,scaled 0.500kg→1kg,1.9788,cebolla
+gama,05CHAR,QUESO MOZZARELLA SANTA MARIA 300 KG,queso mozzarella santa maria,QUESO MOZZARELLA SANTA MARIA,queso mozzarella santa maria,100.0,5.1,0.017,16.79,scaled 300.000kg→1kg,0.001,queso mozzarella
+gama,08FRUV,"CAMBUR 1,300 KG",cambur,CAMBUR,cambur,100.0,1.63,1.2538,1.05,scaled 1.300kg→1kg,1.1941,cambur
+gama,05CHAR,QUESO MOZZARELLA PAISA 300 GR,queso mozzarella paisa,QUESO MOZZARELA PAISA,queso mozzarela paisa,97.67441860465115,7.47,24.9,23.45,scaled 0.300kg→1kg,1.0618,queso mozzarella
+gama,08FRUV,ENSALADA DE LECHUGA MIXTA HIDROPONIAS 150 GR,ensalada de lechuga mixta hidroponias,ENSALADA HIDROPONIAS LECHUGA MIXTA 150GR,ensalada hidroponias lechuga mixta,95.77464788732395,3.25,3.25,2.99,no_adjustment,1.087,lechuga
+gama,08FRUV,BRÓCOLI EN BANDEJA HIDROPONIAS 300 GR,brocoli en bandeja hidroponias,BROCOLI HIDROPONIAS BANDEJA 300GR,brocoli hidroponias bandeja,94.73684210526316,4.3,4.3,3.99,no_adjustment,1.0777,brocoli
+gama,03CARN,PECHUGA DE POLLO CON HUESO 1 KG,pechuga de pollo con hueso,PECHUGA DE POLLO CON HUESO KG,pechuga de pollo con hueso kg,94.54545454545455,5.99,5.99,3.19,no_adjustment,1.8777,pechuga pollo
+gama,05CHAR,QUESO MOZZARELLA NAPOLITANA 300 GR,queso mozzarella napolitana,QUESO MOZZARELA NAPOLITANO,queso mozzarela napolitano,94.33962264150944,6.86,22.8667,19.5498,scaled 0.300kg→1kg,1.1697,queso mozzarella
+gama,05CHAR,JAMON PIERNA MILLENNIUM 300 GR,jamon pierna millennium,JAMON PIERNA MILLENNIUM KG,jamon pierna millennium kg,93.87755102040816,4.16,13.8667,10.3795,scaled 0.300kg→1kg,1.336,pierna lechon
+gama,08FRUV,"PLATANOS 1,500 KG",platanos,PLATANO,platano,93.33333333333333,4.13,2.7533,2.59,scaled 1.500kg→1kg,1.0631,platano
+gama,05CHAR,MORTADELA ESPECIAL PLUMROSE 1 KG,mortadela especial plumrose,MORTADELA PLUMPROSE ESPECIAL KG,mortadela plumprose especial kg,93.10344827586206,4.69,4.69,3.59,no_adjustment,1.3064,mortadela
+gama,08FRUV,LECHUGA CRIOLLA 400 GR,lechuga criolla,LECHUGA CRIOLLA KG,lechuga criolla kg,90.9090909090909,1.5,3.75,1.99,scaled 0.400kg→1kg,1.8844,lechuga
+gama,03CARN,TOMAHAWK DE RES 1 KG,tomahawk de res,TOMAHAWK DE RES KG,tomahawk de res kg,90.9090909090909,16.99,16.99,16.9899,no_adjustment,1.0,costilla res
+gama,03CARN,COSTILLA DE RES 1 KG,costilla de res,COSTILLA DE RES KG,costilla de res kg,90.9090909090909,7.29,7.29,7.9899,no_adjustment,0.9124,costilla res
+gama,08FRUV,PIMENTÓN LARGO 500 GR,pimenton largo,PIMENTON LARGO KG,pimenton largo kg,90.32258064516128,1.8,3.6,2.69,scaled 0.500kg→1kg,1.3383,pimenton
+gama,05CHAR,QUESO MERIDEÑO 500 GR,queso merideno,QUESO MERIDEÑO KG,queso merideno kg,90.32258064516128,5.0,10.0,7.3501,scaled 0.500kg→1kg,1.3605,queso merideño
+gama,08FRUV,TOMATE PERITA 700 GR,tomate perita,TOMATE PERITA KG,tomate perita kg,89.65517241379311,1.09,1.5571,1.09,scaled 0.700kg→1kg,1.4286,tomate
+gama,08FRUV,LECHUGA AMERICANA 500 GR,lechuga americana,LECHUGA AMERICANA UND,lechuga americana und,89.47368421052632,1.5,3.0,0.89,scaled 0.500kg→1kg,3.3708,lechuga
+gama,08FRUV,LECHUGA ROMANA 500 GR,lechuga romana,LECHUGA ROMANA UND,lechuga romana und,87.5,1.5,3.0,0.89,scaled 0.500kg→1kg,3.3707,lechuga
+gama,05CHAR,DIP QUESO CREMA Y TOCINETA GAMA 1 UN,dip queso crema y tocineta gama,QUESO CREMA DIP TOCINETA,queso crema dip tocineta,87.27272727272728,5.45,5.45,6.1638,no_adjustment,0.8842,tocineta
+gama,05CHAR,MORTADELA ESPECIAL PUNTA DE MONTE 1 KG,mortadela especial punta de monte,MORTADELA PUNTA DEL MONTE 500GR,mortadela punta del monte,86.20689655172413,6.29,6.29,2.39,scaled 1.000kg→1kg (emp=0.500kg),2.6318,mortadela
+gama,03CARN,"PATAS DE RES 1,200 KG",patas de res,PATA DE RES KG,pata de res kg,84.61538461538461,3.6,3.0,2.99,scaled 1.200kg→1kg,1.0033,milanesa res
+gama,05CHAR,MORTADELA ESPECIAL POLLO PLUMROSE 1 KG,mortadela especial pollo plumrose,MORTADELA PLUMPROSE ESPECIAL KG,mortadela plumprose especial kg,84.375,5.3,5.3,3.59,no_adjustment,1.4763,mortadela
+gama,08FRUV,"AGUACATE 1,600 KG",aguacate,AGUACATE KG,aguacate kg,84.21052631578947,8.78,5.4875,1.99,scaled 1.600kg→1kg,2.7575,aguacate
+gama,05CHAR,QUESO MADURADO RALLADO MONTESANO 130 GR,queso madurado rallado montesano,QUESO MONTESANO RALLADO 50GR,queso montesano rallado,83.63636363636364,6.57,50.5385,2.2328,scaled 0.130kg→1kg (emp=0.050kg),22.6343,queso rallado
+gama,05CHAR,QUESO DE BÚFALA FRESQUITO SANTA MARÍA 300 GR,queso de bufala fresquito santa maria,QUESO DE BUFALA SANTA MARIA KG,queso de bufala santa maria kg,83.5820895522388,4.44,14.8,14.45,scaled 0.300kg→1kg,1.0242,queso santa barbara
+gama,05CHAR,QUESO DE AÑO SANTA BARBARA 400 GR,queso de ano santa barbara,QUESO SANTA BARBARA KG,queso santa barbara kg,83.33333333333334,7.44,18.6,11.35,scaled 0.400kg→1kg,1.6388,queso santa barbara
+gama,08FRUV,CEBOLLA 700 GR,cebolla,CEBOLLA KG,cebolla kg,82.35294117647058,1.02,1.4571,0.99,scaled 0.700kg→1kg,1.4719,cebolla
+gama,05CHAR,QUESO BLANCO ESPECIAL PAISA 300 GR,queso blanco especial paisa,QUESO PAST. EL PAISA BLANCO ESPECIAL KG,queso past. el paisa blanco especial kg,81.81818181818181,6.36,21.2,20.35,scaled 0.300kg→1kg,1.0418,queso paisa
+gama,05CHAR,PECHUGA DE PAVO MOVILLA 300 GR,pechuga de pavo movilla,PECHUGA PAVO MOVILLA AHUMADA KG,pechuga pavo movilla ahumada kg,81.4814814814815,4.62,15.4,17.8793,scaled 0.300kg→1kg,0.8613,pechuga pavo
+gama,08FRUV,TOMATE MANZANO HIDROPONIAS 4 UN,tomate manzano hidroponias,TOMATES MANZANO CHERRY HIDROPONICO,tomates manzano cherry hidroponico,80.0,4.13,4.13,4.99,no_adjustment,0.8277,tomate
+gama,05CHAR,SALCHICHAS VIENA FIESTA 450 GR,salchichas viena fiesta,SALCHICHA FIESTA VIENA LARGA 12U,salchicha fiesta viena larga 12u,80.0,8.09,17.9778,6.0259,scaled 0.450kg→1kg,2.9834,salchicha
+gama,03CARN,"PECHUGA DE POLLO SIN HUESO 1,200 KG",pechuga de pollo sin hueso,PECHUGA DE POLLO CON HUESO KG,pechuga de pollo con hueso kg,80.0,8.99,7.4917,3.19,scaled 1.200kg→1kg,2.3485,pechuga pollo
+gama,05CHAR,JAMON DE PIERNA MALLORCA 300 GR,jamon de pierna mallorca,JAMON MAURO DE PIERNA KG,jamon mauro de pierna kg,79.16666666666666,3.48,11.6,7.4914,scaled 0.300kg→1kg,1.5484,pierna lechon
+gama,05CHAR,QUESO CREMA PAISA 200 GR,queso crema paisa,QUESO MOZZARELA PAISA,queso mozzarela paisa,78.94736842105263,7.44,37.2,23.45,scaled 0.200kg→1kg,1.5864,queso paisa
+gama,05CHAR,TOCINETA AHUMADA REBANADA COCHON 200 GR,tocineta ahumada rebanada cochon,TOCINETA GIACOMELLO AHU REBANADA 250GR,tocineta giacomello ahu rebanada,78.125,7.3,7.3,6.2818,no_adjustment,1.1621,tocineta
+gama,03CARN,CARNE BISTEC DE SOLOMO 500 GR,carne bistec de solomo,BISTEC DE SOLOMO KG,bistec de solomo kg,78.04878048780488,6.5,13.0,13.99,scaled 0.500kg→1kg,0.9292,solomo molido
+gama,03CARN,CHURRASCO DE SOLOMO 1 KG,churrasco de solomo,SOLOMO DE CUERITO CHURRASCO KG,solomo de cuerito churrasco kg,77.55102040816327,12.99,12.99,13.99,no_adjustment,0.9285,solomo molido
+gama,03CARN,POLLO FILET MUSLO 500 GR,pollo filet muslo,MUSLO POLLO KG,muslo pollo kg,77.41935483870968,3.63,7.26,3.99,scaled 0.500kg→1kg,1.8195,muslo pollo
+gama,03CARN,HIGADO DE RES 550 GR,higado de res,HIGADO RES KG,higado res kg,76.92307692307692,4.95,9.0,7.99,scaled 0.550kg→1kg,1.1264,higado pollo
+gama,05CHAR,JAMÓN DE PIERNA COCIDO PLUMROSE 300 GR,jamon de pierna cocido plumrose,JAMON PIERNA PLUMROSE KG,jamon pierna plumrose kg,76.36363636363637,4.2,14.0,13.75,scaled 0.300kg→1kg,1.0182,pierna lechon
+gama,05CHAR,QUESO MOZZARELLA KRABI 300 GR,queso mozzarella krabi,QUESO MOZZARELLA SANTA MARIA,queso mozzarella santa maria,76.0,5.06,16.8667,16.79,scaled 0.300kg→1kg,1.0046,queso mozzarella
+gama,08FRUV,BROCOLI EN BANDEJA 500 GR,brocoli en bandeja,COCO EN BANDEJA UND,coco en bandeja und,75.67567567567568,2.65,5.3,0.99,scaled 0.500kg→1kg,5.3536,brocoli
+gama,05CHAR,TOCINETA AHUMADA ARTESANAL 500 GR,tocineta ahumada artesanal,TOCINETA AHUMADA KG,tocineta ahumada kg,75.55555555555556,10.0,20.0,13.9902,scaled 0.500kg→1kg,1.4296,tocineta
+gama,05CHAR,QUESO MOZZARELLA CALICANTO 300 GR,queso mozzarella calicanto,QUESO APUREÑO MOZZARELLA KG,queso apureno mozzarella kg,75.47169811320755,5.58,18.6,10.4499,scaled 0.300kg→1kg,1.7799,queso mozzarella
+gama,05CHAR,MORTADELA DE POLLO ESPECIAL PUNTA DE MONTE 500 GR,mortadela de pollo especial punta de monte,MORTADELA PUNTA DEL MONTE 500GR,mortadela punta del monte,74.62686567164178,3.92,3.92,2.39,no_adjustment,1.6402,mortadela
+gama,03CARN,CHULETAS AHUMADAS PREMIUM 500 GR,chuletas ahumadas premium,CHULETA AHUMADA KG,chuleta ahumada kg,74.4186046511628,6.4,12.8,9.99,scaled 0.500kg→1kg,1.2813,chuleta ahumada
+gama,03CARN,CARNE SOLOMO STROGONOFF 500 GR,carne solomo strogonoff,STROGONOFF DE LOMITO KG,strogonoff de lomito kg,73.91304347826086,5.75,11.5,16.99,scaled 0.500kg→1kg,0.6769,solomo molido
+gama,08FRUV,MANZANAS AMARILLAS 700 GR,manzanas amarillas,MANZANA GOLDEN AMARILLA KG,manzana golden amarilla kg,72.72727272727273,6.19,8.8429,7.25,scaled 0.700kg→1kg,1.2197,manzana
+gama,08FRUV,MANZANA GALA 680 GR,manzana gala,MANZANA ROYAL GALA KG,manzana royal gala kg,72.72727272727273,5.37,7.8971,6.4901,scaled 0.680kg→1kg,1.2168,manzana
+gama,08FRUV,BROCOLI ANDINO SIN HOJAS 600 GR,brocoli andino sin hojas,BROCOLI EL ANDINITO 500GR UND,brocoli el andinito und,72.34042553191489,2.66,4.4333,2.89,scaled 0.600kg→1kg (emp=0.500kg),1.534,brocoli
+gama,03CARN,"MUSLO DE POLLO ENTERO 1,100 KG",muslo de pollo entero,POLLO ENTERO KG,pollo entero kg,72.22222222222221,3.96,3.6,7.89,scaled 1.100kg→1kg,0.4563,pollo entero
+gama,03CARN,PASTICHO DE POLLO GAMA 700 GR,pasticho de pollo gama,PATAS DE POLLO KG,patas de pollo kg,71.7948717948718,15.98,22.8286,3.89,scaled 0.700kg→1kg,5.8685,muslo pollo
+gama,05CHAR,QUESO MOZZARELLA JUNIOR BUFALINDA 300 GR,queso mozzarella junior bufalinda,QUESO BURRATA BUFALINDA 400GR,queso burrata bufalinda,71.42857142857143,6.99,23.3,7.19,scaled 0.300kg→1kg (emp=0.400kg),3.2406,queso rallado
+gama,05CHAR,QUESO PALMITA DE AÑO SANTA BARBARA 400 GR,queso palmita de ano santa barbara,QUESO SANTA BARBARA KG,queso santa barbara kg,71.42857142857143,7.84,19.6,11.35,scaled 0.400kg→1kg,1.7269,queso santa barbara
+gama,05CHAR,SALCHICHAS DE POLLO FIESTA 225 GR,salchichas de pollo fiesta,SALCHICHA LPRADO POLLO 440GR,salchicha lprado pollo,70.83333333333333,5.35,23.7778,4.3017,scaled 0.225kg→1kg (emp=0.440kg),5.5276,salchicha
+gama,05CHAR,PECHUGA DE PAVO TROCEADO 300 GR,pechuga de pavo troceado,PECHUGA PAVO PLUMROSE KG,pechuga pavo plumrose kg,70.83333333333333,2.47,8.2333,16.0776,scaled 0.300kg→1kg,0.5121,pechuga pavo
+gama,03CARN,ALBONDIGAS DE CARNE DE SOLOMO 500 GR,albondigas de carne de solomo,ALBONDIGAS DE POLLO KG,albondigas de pollo kg,70.58823529411764,5.75,11.5,12.99,scaled 0.500kg→1kg,0.8853,solomo molido
+gama,05CHAR,QUESO MOZZARELLA BOCCONCINI BUFALINDA 600 GR,queso mozzarella bocconcini bufalinda,QUESO CALICANTO BOCCONCINI 340GR,queso calicanto bocconcini,69.84126984126983,12.3,20.5,5.39,scaled 0.600kg→1kg (emp=0.340kg),3.8033,queso pasteurizado
+gama,03CARN,CHULETA AHUMADA ARTESANAL 500 GR,chuleta ahumada artesanal,CHULETA AHUMADA KG,chuleta ahumada kg,69.76744186046511,6.0,12.0,9.99,scaled 0.500kg→1kg,1.2012,chuleta ahumada
+gama,08FRUV,STRUDEL DE MANZANA GAMA 1 UN,strudel de manzana gama,OREJON DE MANZANA KG,orejon de manzana kg,69.76744186046511,2.0,2.0,2.19,no_adjustment,0.9132,manzana
+gama,05CHAR,QUESO MOZARELLA BLANDO BUFALINDA 300 GR,queso mozarella blando bufalinda,QUESO CREMA BUFALINDA AJO / CIBOUL 250GR,queso crema bufalinda ajo / ciboul,69.6969696969697,8.19,8.19,5.1638,no_adjustment,1.586,queso rallado
+gama,05CHAR,QUESO BLANCO PARA RALLAR FLOR DE ARAGUA 310 GR,queso blanco para rallar flor de aragua,QUESO ARTESANAL PARA RALLAR KG,queso artesanal para rallar kg,69.56521739130434,6.47,20.871,7.1901,scaled 0.310kg→1kg,2.9027,queso rallado
+gama,05CHAR,PASTEL QUESO PAISA GAMA 1 UN,pastel queso paisa gama,QUESO PAST. PALMIBUFALA KG,queso past. palmibufala kg,69.38775510204081,2.55,2.55,16.2499,no_adjustment,0.1569,queso paisa
+gama,05CHAR,JAMÓN COCIDO DE PIERNA EL DRAGO 300 GR,jamon cocido de pierna el drago,PALETA DE CERDO EL DRAGO KG,paleta de cerdo el drago kg,68.96551724137932,2.84,9.4667,6.99,scaled 0.300kg→1kg,1.3543,pierna lechon
+gama,05CHAR,QUESO MOZZARELLA FAMILIAR BUFALINDA 600 GR,queso mozzarella familiar bufalinda,QUESO CREMA BUFALINDA NATURAL 250GR,queso crema bufalinda natural,68.75,12.3,20.5,4.9052,scaled 0.600kg→1kg (emp=0.250kg),4.1792,queso merideño
+gama,03CARN,"CARNE SOLOMO PARRILLERO 1,3 KG",carne solomo parrillero,MUSLO POLLO PARRILLERO,muslo pollo parrillero,66.66666666666667,16.89,12.9923,5.99,scaled 1.300kg→1kg,2.169,solomo molido
+gama,03CARN,COCHINO TOCINO 500 GR,cochino tocino,RIÑONADA COCHINO KG,rinonada cochino kg,66.66666666666667,2.75,5.5,2.99,scaled 0.500kg→1kg,1.8395,chuleta cochino
+gama,05CHAR,SALCHICHAS ROJAS FRESCAS GAMA 250 GR,salchichas rojas frescas gama,SALCHICHA FRIGOSAN POLACA  KG,salchicha frigosan polaca kg,66.66666666666667,4.5,18.0,4.99,scaled 0.250kg→1kg,3.6072,salchicha
+gama,08FRUV,AJO CRIOLLO PELADO GAMA 170 GR,ajo criollo pelado gama,AJO PELADO HIDROPONIAS 150 GR,ajo pelado hidroponias,66.66666666666667,2.63,2.63,4.09,no_adjustment,0.643,ajo
+plansuarez,05CHAR,MORTADELA RICCI EXTRA X KG,mortadela ricci extra x kg,MORTADELA RICCI EXTRA KG,mortadela ricci extra kg,96.0,8.7733,8.7733,8.5899,no_adjustment,1.0213,mortadela
+plansuarez,03CARN,HIGADO DE POLLO X KG,higado de pollo x kg,HIGADO DE POLLO KG,higado de pollo kg,94.73684210526316,3.2857,3.2857,9.99,no_adjustment,0.3289,higado
+plansuarez,05CHAR,MORTADELA PLUMROSE 1 KG ESPECIAL,mortadela plumrose especial,MORTADELA PLUMPROSE ESPECIAL KG,mortadela plumprose especial kg,93.10344827586206,4.24,4.24,3.59,no_adjustment,1.1811,mortadela
+plansuarez,05CHAR,SALCHICHAS FIESTA VIENA CORTA,salchichas fiesta viena corta,SALCHICHA FIESTA VIENA CORTA 12U,salchicha fiesta viena corta 12u,91.80327868852459,4.4928,4.4928,4.0086,no_adjustment,1.1208,salchicha
+plansuarez,05CHAR,SALCHICHAS FIESTA 450 G VIENA LARGA,salchichas fiesta viena larga,SALCHICHA FIESTA VIENA LARGA 12U,salchicha fiesta viena larga 12u,91.80327868852459,6.7982,15.1071,6.0259,scaled 0.450kg→1kg,2.507,salchicha
+plansuarez,05CHAR,MORTADELA ALIVAL POLLO 1KG,mortadela alival pollo,MORTADELA ALIBAL POLLO ESP 500GR,mortadela alibal pollo esp,87.5,4.2667,4.2667,1.85,scaled 1.000kg→1kg (emp=0.500kg),2.3063,mortadela
+plansuarez,05CHAR,MORTADELA PUNTA DE MONTE POLLO 1 KG,mortadela punta de monte pollo,MORTADELA PUNTA DEL MONTE 500GR,mortadela punta del monte,87.27272727272728,6.0,6.0,2.39,scaled 1.000kg→1kg (emp=0.500kg),2.5105,mortadela
+plansuarez,05CHAR,MORTADELA CARACAS X KG ESPECIAL,mortadela caracas x kg especial,MORTADELA ARICHUNA ESPECIAL KG,mortadela arichuna especial kg,85.24590163934427,5.0667,5.0667,4.99,no_adjustment,1.0154,mortadela
+plansuarez,08FRUV,AJO PELADO EL ANDINITO 150 G NATURAL,ajo pelado el andinito natural,AJO EL ANDINITO PELADO 150GR,ajo el andinito pelado,84.61538461538461,2.4286,2.4286,2.85,no_adjustment,0.8521,ajo
+plansuarez,05CHAR,MORTADELA PLUMROSE 1 KG POLLO ESPECIAL,mortadela plumrose pollo especial,MORTADELA PLUMPROSE ESPECIAL KG,mortadela plumprose especial kg,84.375,5.2992,5.2992,3.59,no_adjustment,1.4761,mortadela
+plansuarez,05CHAR,SALCHICHAS WIENERS PLUMROSE 460 G,salchichas wieners plumrose,SALCHICHA PLUMROSE T/ WIENERS CORTA,salchicha plumrose t/ wieners corta,83.87096774193549,10.054,21.8565,5.6466,scaled 0.460kg→1kg,3.8707,salchicha
+plansuarez,05CHAR,QUESO MONTESANO MOZZARELLA X KG,queso montesano mozzarella x kg,QUESO MOZZARELLA EL MORENO KG,queso mozzarella el moreno kg,83.33333333333334,17.0667,17.0667,9.99,no_adjustment,1.7084,mozzarella
+plansuarez,05CHAR,MORTADELA CARACAS 1KG ESPECIAL,mortadela caracas especial,MORTADELA ARICHUNA ESPECIAL KG,mortadela arichuna especial kg,82.14285714285714,4.7867,4.7867,4.99,no_adjustment,0.9593,mortadela
+plansuarez,05CHAR,SALCHICHAS HERMO 6UND WIENERS LARGA,salchichas hermo wieners larga,SALCHICHA MOVILLA WIENERS 250GR,salchicha movilla wieners,80.0,5.5834,5.5834,3.4914,no_adjustment,1.5992,salchicha
+plansuarez,05CHAR,QUESO PALMIRA MOZZARELLA X KG,queso palmira mozzarella x kg,QUESO MOZZARELA PAISA,queso mozzarela paisa,80.0,11.7333,11.7333,23.45,no_adjustment,0.5004,mozzarella
+plansuarez,05CHAR,SALCHICHAS HERMO 8UND WIENERS CORTA,salchichas hermo wieners corta,SALCHICHA PLUMROSE T/ WIENERS CORTA,salchicha plumrose t/ wieners corta,80.0,5.5834,5.5834,5.6466,no_adjustment,0.9888,salchicha
+plansuarez,05CHAR,QUESO PAISA 200GR EN CREMA,queso paisa en crema,QUESO CREMA PAISA NAT 200GRS,queso crema paisa nat 200grs,79.16666666666666,7.7024,38.512,6.0776,scaled 0.200kg→1kg,6.3367,queso paisa
+plansuarez,05CHAR,MORTADELA DEL CORRAL 1KG POLLO,mortadela del corral pollo,MORTADELA DEL CORRAL POLLO C/PIMENTON KG,mortadela del corral pollo c/pimenton kg,78.78787878787878,5.3333,5.3333,5.7499,no_adjustment,0.9275,mortadela
+plansuarez,05CHAR,QUESO LA GUANOTA MOZZARELLA X KG,queso la guanota mozzarella x kg,QUESO APUREÑO MOZZARELLA KG,queso apureno mozzarella kg,77.96610169491525,11.3333,11.3333,10.4499,no_adjustment,1.0845,mozzarella
+plansuarez,05CHAR,TOCINETA MOVILLA 250 G AHUMADA REBANADA,tocineta movilla ahumada rebanada,TOCINETA GIACOMELLO AHU REBANADA 250GR,tocineta giacomello ahu rebanada,76.92307692307692,6.7396,6.7396,6.2818,no_adjustment,1.0729,tocineta
+plansuarez,03CARN,POLLO ENTERO XUND,pollo entero xund,POLLO ENTERO KG,pollo entero kg,75.0,8.9,8.9,7.89,no_adjustment,1.128,pollo entero
+plansuarez,05CHAR,JAMON CON TOCINETA FIESTA 150GR UNTABLE,jamon con tocineta fiesta untable,UNTABLE FIESTA JAMON C/TOCINETA 150GR,untable fiesta jamon c/tocineta,75.0,1.8238,1.8238,1.4569,no_adjustment,1.2518,tocineta
+plansuarez,08FRUV,PLATANO X KG,platano x kg,PLATANO,platano,73.6842105263158,3.2667,3.2667,2.59,no_adjustment,1.2613,platano
+plansuarez,03CARN,BISTECK DE RES X KG,bisteck de res x kg,BISTEC DE SOLOMO KG,bistec de solomo kg,73.6842105263158,13.14,13.14,13.99,no_adjustment,0.9392,bistec
+plansuarez,05CHAR,BANDEJA QUESO BUFALA SANTA MARIA FRESCO !300! G,bandeja queso bufala santa maria fresco !300! g,QUESO DE BUFALA SANTA MARIA KG,queso de bufala santa maria kg,72.72727272727273,4.084,13.6133,14.45,scaled 0.300kg→1kg,0.9421,queso
+plansuarez,05CHAR,SALCHICHAS HERMO 225GR KIDS,salchichas hermo kids,SALCHICHA HERMO KIDS T/WIENER 225GR KIDS,salchicha hermo kids t/wiener kids,72.72727272727273,4.4544,4.4544,3.2672,no_adjustment,1.3634,salchicha
+plansuarez,05CHAR,SALCHICHAS HERMO KIDS 400GR,salchichas hermo kids,SALCHICHA HERMO KIDS T/WIENER 225GR KIDS,salchicha hermo kids t/wiener kids,72.72727272727273,6.6816,16.704,3.2672,scaled 0.400kg→1kg (emp=0.225kg),5.1126,salchicha
+plansuarez,05CHAR,BANDEJA QUESO NAPOLITANA MOZZARELLA !300! G,bandeja queso napolitana mozzarella !300! g,QUESO MOZZARELA NAPOLITANO,queso mozzarela napolitano,72.46376811594203,5.667,18.89,19.5498,scaled 0.300kg→1kg,0.9662,mozzarella
+plansuarez,05CHAR,QUESO BUFALINDA 300 G MOZZARELLA JUNIOR,queso bufalinda mozzarella junior,QUESO BURRATA BUFALINDA 400GR,queso burrata bufalinda,71.42857142857143,6.3867,21.289,7.19,scaled 0.300kg→1kg (emp=0.400kg),2.9609,mozzarella
+plansuarez,05CHAR,BANDEJA JAMON MILLENNIUM PIERNA !300! G,bandeja jamon millennium pierna !300! g,JAMON PIERNA MILLENNIUM KG,jamon pierna millennium kg,70.76923076923076,3.197,10.6567,10.3795,scaled 0.300kg→1kg,1.0267,jamon
+plansuarez,08FRUV,CAMBUR X KG,cambur x kg,CAMBUR,cambur,70.58823529411764,1.2,1.2,1.05,no_adjustment,1.1429,cambur
+plansuarez,05CHAR,BANDEJA TOCINETA AHUMADA !200! G,bandeja tocineta ahumada !200! g,TOCINETA AHUMADA KG,tocineta ahumada kg,70.58823529411764,5.3724,26.862,13.9902,scaled 0.200kg→1kg,1.9201,tocineta
+plansuarez,08FRUV,BEBIDA TANG 20GR NARANJA,bebida tang naranja,NARANJA TANGELO KG,naranja tangelo kg,70.27027027027026,0.7925,39.625,8.91,scaled 0.020kg→1kg,4.4473,naranja
+plansuarez,05CHAR,QUESO BLANCO MONTESANO PASTEURIZADO X KG,queso blanco montesano pasteurizado x kg,QUESO MONTESANO NAVIDAD KG,queso montesano navidad kg,69.6969696969697,15.2667,15.2667,17.233,no_adjustment,0.8859,queso blanco
+plansuarez,05CHAR,BANDEJA MORTADELA RICCI TAPARA !300! GR,bandeja mortadela ricci tapara !300! gr,MORTADELA RICCI TIPO TAPARA KG,mortadela ricci tipo tapara kg,69.56521739130434,4.892,16.3067,15.9499,scaled 0.300kg→1kg,1.0224,mortadela
+plansuarez,03CARN,BANDEJA CHULETA AHUMADA !500! G,bandeja chuleta ahumada !500! g,CHULETA AHUMADA KG,chuleta ahumada kg,69.38775510204081,7.2659,14.5318,9.99,scaled 0.500kg→1kg,1.4546,chuleta
+plansuarez,05CHAR,SALCHICHAS ALIMEX 225GR VIENA,salchichas alimex viena,SALCHICHA HERMO TIPO VIENA 450GR,salchicha hermo tipo viena,69.38775510204081,3.6501,16.2227,5.7328,scaled 0.225kg→1kg (emp=0.450kg),2.8298,salchicha
+plansuarez,05CHAR,BANDEJA JAMON PLUMROSE PIERNA !300! G,bandeja jamon plumrose pierna !300! g,JAMON PIERNA PLUMROSE KG,jamon pierna plumrose kg,68.85245901639344,4.5217,15.0723,13.75,scaled 0.300kg→1kg,1.0962,jamon
+plansuarez,03CARN,PERNIL CON HUESO X KG,pernil con hueso x kg,LAGARTO CON HUESO KG,lagarto con hueso kg,68.29268292682926,9.7143,9.7143,8.49,no_adjustment,1.1442,pernil
+plansuarez,05CHAR,SALCHICHAS PLUMROSE 400GR POLACA DELI,salchichas plumrose polaca deli,SALCHICHA LPRADO POLLO 440GR,salchicha lprado pollo,67.9245283018868,9.9273,9.9273,4.3017,no_adjustment,2.3078,salchicha
+plansuarez,05CHAR,BANDEJA QUESO MUNSTER PAISA !300! G,bandeja queso munster paisa !300! g,QUESO MUSTER PAISA,queso muster paisa,67.9245283018868,9.1288,30.4293,25.5517,scaled 0.300kg→1kg,1.1909,queso paisa
+plansuarez,03CARN,PECHUGA PUNTA DE MONTE DE POLLO 800 G,pechuga punta de monte de pollo,FILET DE PECHUGA POLLO KG,filet de pechuga pollo kg,67.85714285714286,8.7078,10.8848,9.9899,scaled 0.800kg→1kg,1.0896,pechuga pollo
+plansuarez,05CHAR,PALETA DE CORDERO EL REMANZO X KG,paleta de cordero el remanzo x kg,PALETA DE CERDO VIGOR ESP. KG,paleta de cerdo vigor esp. kg,67.74193548387098,16.2864,16.2864,7.2328,no_adjustment,2.2518,paleta
+plansuarez,03CARN,MILANESA DE POLLO X KG PLANSUAREZ,milanesa de pollo x kg plansuarez,MILANESA DE RES KG,milanesa de res kg,66.66666666666667,7.5,7.5,13.99,no_adjustment,0.5361,milanesa
+plansuarez,08FRUV,AJO INDIAN 65GR PLUS,ajo indian plus,AJO EL ANDINITO 100GR,ajo el andinito,66.66666666666667,2.7197,2.7197,1.75,no_adjustment,1.5541,ajo
+plansuarez,05CHAR,SALCHICHA OSCARMAYER CON TOCINETA,salchicha oscarmayer con tocineta,SALCHICHA C TOVAR POLACA 5 UND,salchicha c tovar polaca,66.66666666666667,9.2842,9.2842,6.8535,no_adjustment,1.3547,salchicha
+plansuarez,05CHAR,QUESO AMARILLO PALMIRA X KG EDAM,queso amarillo palmira x kg edam,QUESO ESPECIAL PALMIRA KG,queso especial palmira kg,66.66666666666667,17.0133,17.0133,14.55,no_adjustment,1.1693,queso amarillo
+plansuarez,03CARN,BANDEJA RINONADA DE COCHINO !500! GR,bandeja rinonada de cochino !500! gr,RIÑONADA COCHINO KG,rinonada cochino kg,65.45454545454545,1.45,2.9,2.99,scaled 0.500kg→1kg,0.9699,cochino
+plansuarez,05CHAR,SALCHICHAS JUMBO OSCAR MAYER 330 G,salchichas jumbo oscar mayer,JAMON OSCAR MAYER PIERNA KG,jamon oscar mayer pierna kg,65.45454545454545,9.7717,29.6112,15.25,scaled 0.330kg→1kg,1.9417,salchicha
+plansuarez,08FRUV,BANDEJA MANZANA ROJA !300! G,bandeja manzana roja !300! g,MANZANA ROYAL GALA KG,manzana royal gala kg,65.3061224489796,2.097,6.99,6.4901,scaled 0.300kg→1kg,1.077,manzana
+plansuarez,08FRUV,BANDEJA TOMATE PERITA !500! GR,bandeja tomate perita !500! gr,TOMATE PERITA KG,tomate perita kg,65.21739130434783,0.7,1.4,1.09,scaled 0.500kg→1kg,1.2844,tomate
+plansuarez,08FRUV,BANDEJA PIMENTON !300! G,bandeja pimenton !300! g,MELON EN BANDEJA,melon en bandeja,65.0,0.8,2.6667,1.99,scaled 0.300kg→1kg,1.34,pimenton
