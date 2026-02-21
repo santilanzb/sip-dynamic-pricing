@@ -1,132 +1,109 @@
 # SIP Dynamic Pricing
 
-Sistema de Soporte de Decisiones para optimización de precios dinámicos en supermercados utilizando Machine Learning.
+Sistema Inteligente de Precios — framework generalizable de **dynamic pricing basado en Machine Learning** para supermercados venezolanos.
 
-## 📋 Descripción
+**Trabajo de Grado** — Universidad Metropolitana (UNIMET), Caracas, Venezuela, 2025-2026.
 
-Este proyecto implementa un sistema de **dynamic pricing** para cadenas de supermercados venezolanos, enfocado en las categorías de:
-- 🥩 Carnes (03CARN)
-- 🍎 Frutas y Verduras (08FRUV)  
-- 🧀 Charcutería (05CHAR)
+## Descripción
 
-### Componentes Principales
+Este proyecto investiga y desarrolla un sistema end-to-end de optimización de precios dinámicos para cadenas de supermercados, utilizando como caso de estudio datos reales de una cadena venezolana (4 sucursales, 1,800+ productos en 3 categorías de perecederos). La metodología y el sistema son **generalizables a cualquier cadena de supermercados** con datos transaccionales equivalentes.
 
-1. **Módulo de Pronóstico de Demanda** - XGBoost/LightGBM
-2. **Módulo de Simulación de Precios** - Escenarios contrafactuales
-3. **Módulo de Optimización** - Recomendación de precio óptimo
-4. **Dashboard Gerencial** - Streamlit
+**Categorías estudiadas:**
+- Carnes (03CARN)
+- Frutas y Verduras (08FRUV)
+- Charcutería (05CHAR)
 
-## 🚀 Inicio Rápido
+### Componentes del Sistema
+
+| Módulo | Descripción | Estado |
+|--------|-------------|--------|
+| Pronóstico de Demanda | LightGBM bietápico (hurdle model), WMAPE 23.61%, R² 0.938 | ✅ Completo |
+| Inteligencia Competitiva | Web scraping + generación sintética + ablación | ✅ Completo |
+| Simulación Multi-Escenario | 4 escenarios (±5% a ±30%), Phase 1 + Phase 2 backtest | ✅ Completo |
+| Optimización de Precios | Grid-search con penalizaciones configurables, 16 KPIs | ✅ Completo |
+| Dashboard Gerencial | Streamlit — visualización interactiva | 🔨 En desarrollo |
+
+### Resultados Principales
+
+- **Modelo de demanda:** WMAPE 23.61%, MASE 0.569 (1.76× mejor que naive), intervalos conformales calibrados
+- **Optimización (escenario Moderado ±10%):** +8.74% ΔRevenue, +25.54% ΔMargen en test set (out-of-sample)
+- **Backtest 23 meses:** +9.20% ΔRevenue sostenido (σ=0.89pp), sin degradación temporal
+- **Competencia:** Infraestructura de scraping funcional; datos sintéticos aportan +0.10pp WMAPE (marginal con datos no reales)
+
+## Inicio Rápido
 
 ### Requisitos Previos
 
 - Python 3.11+
-- Acceso a SQL Server (sermgp03, sermgp04, serestellar)
-- ODBC Driver 17 for SQL Server
+- GPU NVIDIA (opcional, para LightGBM GPU)
+- ODBC Driver 17 for SQL Server (para extracción de datos)
 
 ### Instalación
 
 ```bash
-# Clonar/navegar al proyecto
-cd C:\Users\dblanco\Projects\sip-dynamic-pricing
-
-# Crear entorno virtual
 python -m venv venv
-
-# Activar entorno (Windows)
-.\venv\Scripts\activate
-
-# Instalar dependencias
+.\venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 ```
 
-### Extracción de Datos
-
-```bash
-# Extraer todos los datos
-python -m src.data.extract --all
-
-# O extraer por separado
-python -m src.data.extract --compraventa
-python -m src.data.extract --promociones
-python -m src.data.extract --ajustes
-```
-
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 sip-dynamic-pricing/
 ├── data/
-│   ├── raw/                 # Datos extraídos de SQL (Parquet)
-│   ├── processed/           # Datos transformados
-│   └── synthetic/           # Datos de supermercados sintéticos
-├── notebooks/
-│   ├── 01_eda.ipynb
-│   ├── 02_feature_engineering.ipynb
-│   ├── 03_modeling.ipynb
-│   └── 04_simulation.ipynb
+│   ├── raw/                    # Datos crudos (Parquet)
+│   ├── processed/              # fact_ventas, dim_producto, features.parquet
+│   └── external/               # Tasas BCV, feriados, precios competencia
+├── docs/
+│   ├── PHASES_DOCUMENTATION.md # Documentación exhaustiva de todas las fases
+│   ├── DECISIONS.md            # Decisiones técnicas y de negocio
+│   └── arquitectura.md         # Diseño del sistema
+├── models/
+│   ├── two_stage/lgbm/         # Modelo de producción (LightGBM bietápico)
+│   ├── two_stage/xgb/          # XGBoost bietápico (comparación)
+│   ├── rf_baseline.pkl         # Random Forest single-stage
+│   └── *.csv, *.png            # Métricas y visualizaciones de entrenamiento
+├── output/
+│   ├── simulation/             # Resultados multi-escenario (Phase 1 + Phase 2)
+│   └── competition/            # Ablación, coeficientes, plots
 ├── src/
-│   ├── data/
-│   │   ├── extract.py       # Extracción de SQL
-│   │   ├── transform.py     # ETL y feature engineering
-│   │   └── synthetic.py     # Generación de datos sintéticos
-│   ├── models/
-│   │   ├── train.py         # Entrenamiento
-│   │   ├── predict.py       # Inferencia
-│   │   └── optimize.py      # Optimización de precios
-│   ├── simulation/
-│   │   └── simulator.py     # Simulador de escenarios
-│   └── dashboard/
-│       └── app.py           # Streamlit app
-├── models/                  # Modelos serializados
-├── reports/                 # Visualizaciones y reportes
-├── tests/                   # Tests unitarios
-├── config.yaml              # Configuración
-├── requirements.txt
-└── README.md
+│   ├── data/                   # ETL, features, quality checks
+│   ├── models/                 # TwoStageDemandModel, training, conformal
+│   ├── simulation/             # DemandSimulator, PriceOptimizer, KPIs
+│   ├── competition/            # Scrapers, synthetic generator, ablation
+│   ├── dashboard/              # Streamlit app (en desarrollo)
+│   ├── analysis/               # Análisis de residuos
+│   └── utils/                  # Métricas compartidas
+├── reports/                    # Reportes de training, data quality
+├── notebooks/                  # EDA
+├── mlruns/                     # MLflow tracking
+└── requirements.txt
 ```
 
-## 📊 Datos
+## Datos
 
-### Fuentes
+| Métrica | Valor |
+|---------|-------|
+| Registros transaccionales | 1.3M+ |
+| Productos | 1,819 |
+| Sucursales | 4 (SUC001-SUC004) |
+| Período | Ene 2023 – Dic 2025 |
+| Features generadas | 60 (53 base + 7 competencia) |
+| Normalización | Bs→USD vía tasa BCV diaria |
 
-| Fuente | Servidor | Base de Datos | Descripción |
-|--------|----------|---------------|-------------|
-| CompraVenta 2023 | sermgp03 | EMP03 | Transacciones históricas |
-| CompraVenta 2024 (Ene-Oct) | sermgp03 | EMP03 | Transacciones pre-mudanza |
-| CompraVenta 2024 (Nov-Dic) | sermgp04 | EMP04 | Transacciones post-mudanza |
-| CompraVenta 2025 | sermgp04 | EMP04 | Transacciones actuales |
-| Promociones | serestellar | VAD10 | Histórico de promociones |
-| Ajustes | sermgp04 | EMP04 | IV10001/IV30300 |
+## Documentación
 
-### Volumen Estimado
+Ver `docs/PHASES_DOCUMENTATION.md` para documentación exhaustiva de cada fase, incluyendo:
+- Metodología y decisiones técnicas
+- Resultados detallados con tablas y métricas
+- Hallazgos generalizables para la investigación
+- Limitaciones y trabajo futuro
 
-- ~1,000,000 registros de CompraVenta
-- ~43,000 registros de Promociones
-- 4 sucursales
-- Período: Sept 2023 - Oct 2025
+## Autores
 
-## 🤖 Modelos
+- **Santiago Lanz** — Universidad Metropolitana
+- **Diego Blanco** — Universidad Metropolitana
 
-- **Baseline:** Random Forest
-- **Principal:** XGBoost
-- **Alternativo:** LightGBM (GPU accelerated)
-
-### Métricas Objetivo
-
-- MAPE < 15%
-- R² > 0.7
-- Mejora de ingresos ≥ 5% vs precios estáticos
-
-## 👥 Autores
-
-- Santiago Lanz
-- Diego Blanco
-
-## 📚 Referencias
-
-Trabajo de Grado - Universidad Metropolitana, 2025-2026
-
-Tutores:
+**Tutores:**
 - Nicolás Araque
 - Siro Tagliaferro

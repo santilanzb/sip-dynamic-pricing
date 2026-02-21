@@ -2,8 +2,32 @@
 
 **Proyecto:** Sistema Inteligente de Precios - Dynamic Pricing
 **Autores:** Santiago Lanz, Diego Blanco
+**Universidad:** Universidad Metropolitana (UNIMET), Caracas, Venezuela
 **Última actualización:** 2026-02-21
-**Versión:** 4.0
+**Versión:** 4.1
+
+---
+
+## Contexto y Alcance de la Investigación
+
+Este proyecto de tesis desarrolla y evalúa un **sistema generalizable de dynamic pricing basado en Machine Learning** para supermercados venezolanos. Aunque el caso de estudio utiliza datos reales de **Emporium** (cadena de 4 sucursales, categorías Carnes/Charcutería/Fruver), la arquitectura, metodología y hallazgos están diseñados para ser **replicables en cualquier cadena de supermercados** con datos de punto de venta (POS) equivalentes.
+
+**Contribuciones principales de la investigación:**
+
+1. **Pipeline end-to-end reproducible:** Desde extracción SQL hasta recomendaciones de precio óptimo, con cada decisión documentada y justificada.
+2. **Modelo bietápico (hurdle model)** para demanda con alta proporción de ceros, generalizable a cualquier retail con patrones similares.
+3. **Hallazgo sobre elasticidad inelástica en perecederos venezolanos:** La demanda de productos perecederos en Venezuela muestra baja sensibilidad al precio (elasticidad media -0.23), consistente con un mercado donde la disponibilidad domina sobre el precio.
+4. **Framework de simulación multi-escenario** con penalizaciones configurables, adaptable a distintas estrategias de negocio y tolerancias al riesgo.
+5. **Infraestructura de inteligencia competitiva** con web scraping y generación sintética, lista para incorporar datos reales de cualquier competidor con presencia online.
+6. **Cuantificación del impacto:** +8.7% a +9.2% en revenue con el escenario Moderado (±10%), validado en 23 meses de backtest con σ=0.89pp — demostrando estabilidad temporal.
+
+**Limitaciones contextuales (Venezuela):**
+- Inflación y tipo de cambio variable (normalización BCV diaria)
+- Ausencia de datos de inventario/merma por prácticas contables locales
+- Mercado con escasez intermitente donde disponibilidad > precio para el consumidor
+- Competencia limitada en datos online (solo 2 competidores scrapeables)
+
+**Generalización:** El sistema requiere únicamente datos transaccionales (producto, sucursal, fecha, unidades, precio, costo) y es agnóstico al país, moneda o categoría de productos. Los parámetros específicos (márgenes mínimos, rangos de precio, penalizaciones) son configurables por el operador.
 
 ---
 
@@ -1213,7 +1237,7 @@ src/competition/
 
 Construir un sistema de simulación que, dado el modelo bietápico entrenado, evalúe el impacto de cambios de precio sobre la demanda predicha y recomiende precios óptimos por SKU-sucursal-día, maximizando el ingreso con penalizaciones suaves por cambios bruscos y violación de márgenes mínimos.
 
-**Nota:** La Fase 6 (datos sintéticos de competencia) fue pospuesta por no contar con datos reales de competidores. Se procedió directamente a la simulación.
+**Nota:** La Fase 7 fue implementada inicialmente antes de la Fase 6. Posteriormente se completó la Fase 6 (datos de competencia), cuyo estudio de ablación confirmó que las features de competencia sintéticas aportan mejora marginal (+0.10pp WMAPE). Se mantuvo Model A como modelo de producción para la simulación. Ver [Fase 6](#fase-6) para detalles.
 
 ### 7.2 Arquitectura del Simulador
 
@@ -1789,7 +1813,8 @@ sip-dynamic-pricing/
 || `b4fcc21` | Simulación: KPIs, análisis contrafactual y runner |
 || `fd20311` | Simulación: resultados Fase 7 (test 2025-H2) |
 || `a7efeb6` | Simulación: documentación Fase 7 v1 |
-|| `(pending)` | Simulación v2: multi-escenario + backtest 24 meses |
+|| `9e6ae13` | Simulación v2: multi-escenario + backtest 24 meses |
+|| `1d37aad` | Fase 6: datos de competencia, scraping, ablación |
 
 ---
 
@@ -1801,5 +1826,26 @@ sip-dynamic-pricing/
 
 ---
 
-*Documento generado para trazabilidad del proyecto de tesis.*
-*SIP Dynamic Pricing - 2026*
+## Hallazgos Generalizables
+
+Los siguientes hallazgos trascienden el caso de estudio específico (Emporium) y constituyen contribuciones generalizables para la implementación de dynamic pricing en supermercados de mercados emergentes:
+
+1. **Los lags de demanda dominan sobre el precio en modelos de demanda diaria de perecederos.** Las 4 features más importantes (>86% SHAP) son lags y rolling de demanda. El precio unitario es feature #10. Esto implica que la inercia de demanda es el principal predictor, no la sensibilidad al precio — hallazgo relevante para cualquier cadena de retail con productos de alta rotación.
+
+2. **El modelo bietápico (hurdle) es marginalmente superior al single-stage (+0.1pp WMAPE) cuando la proporción de ceros es ~15%.** Con proporciones de ceros más altas (>30%), se esperaría un beneficio mayor del enfoque bietápico.
+
+3. **La elasticidad estimada en perecederos venezolanos es muy baja (media -0.23, mediana -0.09).** Esto es consistente con un mercado donde la disponibilidad del producto es más valorada que su precio. En mercados con mayor competencia y disponibilidad, las elasticidades serían mayores y el optimizador produciría recomendaciones más matizadas (más bajadas de precio).
+
+4. **La variación histórica de precios limita la señal aprendida por el modelo.** Con mediana de cambio diario de 0.0% y P99 de ±5.2%, el modelo tiene poca evidencia de qué sucede con cambios grandes de precio. Supermercados con políticas de pricing más dinámicas proporcionarían datos más ricos para el aprendizaje.
+
+5. **El escenario Moderado (±10%, γ=0.3) es robusto temporalmente:** +9.15% ± 0.89pp de ΔRevenue durante 23 meses, sin degradación. Esto sugiere que el framework de optimización es estable y no sobreajusta al período evaluado.
+
+6. **Los datos de competencia sintéticos aportan señal real pero insuficiente.** Las features de competencia capturan 10% de la importancia del regresor pero solo +0.10pp en WMAPE. Con datos de competencia reales (scraping periódico), se esperaría un impacto significativamente mayor.
+
+7. **Concentración Pareto alta:** 13.3% de los SKUs genera 80% del revenue. Una implementación piloto puede enfocarse en ~100 SKUs clave para capturar la mayoría del beneficio con mínimo esfuerzo operativo.
+
+---
+
+*Documento generado como parte del trabajo de grado en la Universidad Metropolitana (UNIMET).*
+*SIP Dynamic Pricing — Sistema Inteligente de Precios para Supermercados Venezolanos, 2026.*
+*Tutores: Nicolás Araque, Siro Tagliaferro.*
