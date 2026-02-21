@@ -3,7 +3,7 @@
 **Proyecto:** Sistema Inteligente de Precios - Dynamic Pricing
 **Autores:** Santiago Lanz, Diego Blanco
 **Última actualización:** 2026-02-21
-**Versión:** 2.0
+**Versión:** 3.0
 
 ---
 
@@ -14,6 +14,7 @@
 4. [Fase 3: ETL y Calidad de Datos](#fase-3)
 5. [Fase 4: Feature Engineering](#fase-4)
 6. [Fase 5: Entrenamiento y Evaluación](#fase-5)
+7. [Fase 7: Simulación y Optimización de Precios](#fase-7)
 
 ---
 
@@ -218,8 +219,11 @@ donde:
 || Demanda single-stage | `src/models/train_gpu.py` | ✅ Completado |
 || Demanda bietápico | `src/models/train_two_stage.py` | ✅ Completado |
 || Modelo bietápico | `src/models/two_stage.py` | ✅ Completado |
-|| Simulador | `src/simulation/` | 🔄 Pendiente |
-|| Optimizador | `src/optimization/` | 🔄 Pendiente |
+|| Simulador | `src/simulation/simulator.py` | ✅ Completado |
+|| Optimizador | `src/simulation/optimizer.py` | ✅ Completado |
+|| KPIs | `src/simulation/kpis.py` | ✅ Completado |
+|| Contrafactual | `src/simulation/counterfactual.py` | ✅ Completado |
+|| Runner | `src/simulation/run_optimization.py` | ✅ Completado |
 || Dashboard | `src/dashboard/` | 🔄 Pendiente |
 
 ---
@@ -867,6 +871,307 @@ La meta original de WMAPE ≤15% es **inalcanzable con los datos disponibles**. 
 
 ---
 
+## Fase 7: Simulación y Optimización de Precios {#fase-7}
+
+### 7.1 Objetivo
+
+Construir un sistema de simulación que, dado el modelo bietápico entrenado, evalúe el impacto de cambios de precio sobre la demanda predicha y recomiende precios óptimos por SKU-sucursal-día, maximizando el ingreso con penalizaciones suaves por cambios bruscos y violación de márgenes mínimos.
+
+**Nota:** La Fase 6 (datos sintéticos de competencia) fue pospuesta por no contar con datos reales de competidores. Se procedió directamente a la simulación.
+
+### 7.2 Arquitectura del Simulador
+
+**Módulos implementados:**
+
+| Módulo | Archivo | Líneas | Descripción |
+|--------|---------|--------|-------------|
+| DemandSimulator | `src/simulation/simulator.py` | 316 | Motor de simulación vectorizado |
+| PriceOptimizer | `src/simulation/optimizer.py` | 233 | Optimizador grid-search con penalizaciones |
+| KPIs | `src/simulation/kpis.py` | 296 | 16 indicadores clave |
+| Counterfactual | `src/simulation/counterfactual.py` | 393 | Escenarios what-if, sweep γ, visualizaciones |
+| Runner | `src/simulation/run_optimization.py` | 244 | Orquestación del pipeline completo |
+
+#### 7.2.1 DemandSimulator
+
+**Clase principal:** `DemandSimulator`
+
+**Diseño:** Envuelve el modelo bietápico (`TwoStageDemandModel`) y permite simular la respuesta de demanda a cambios de precio manteniendo todas las demás features constantes (ceteris paribus).
+
+**Componentes:**
+
+- `from_artifacts()`: Constructor que carga modelo + features.parquet y computa el mapa de costos
+- `reprice_features()`: Modifica las 6 features sensibles al precio en batch (vectorizado)
+- `simulate_grid()`: Genera grid de N precios × M filas y predice demanda en cada punto
+- `estimate_elasticity()`: Elasticidad arco por diferencias finitas (ε = (ΔQ/Q)/(Δp/p))
+- `compute_cost_map()`: Costo unitario winsorizado p5-p95 por producto-sucursal
+
+**Features que cambian al variar precio:**
+
+| Feature | Recálculo |
+|---------|-----------|
+| `precio_unitario_usd` | Directamente reemplazado |
+| `margen_pct` | (p − c) / p × 100 |
+| `precio_vs_historico` | p / precio_historico_producto |
+| `precio_vs_clase` | p / precio_mean_clase |
+| `precio_x_finsemana` | p × es_fin_semana |
+| `precio_x_perecedero` | p × es_perecedero |
+
+**Features que permanecen frozen:** Todos los lags de demanda, rolling stats, features temporales, precio_mean_7d, precio_mean_30d, precio_var_1d, precio_var_7d. Estas se mantienen constantes porque representan el historial observado hasta el momento de la decisión.
+
+**Costo unitario:**
+- Derivado como `costo_usd / unidades` del features.parquet
+- Winsorizado p5-p95 por producto-sucursal para eliminar outliers
+- 5,342 pares producto-sucursal con costo calculado
+- Fallback: si no hay costo, se estima desde `margen_pct` como `p × (1 − margen_pct/100)`
+
+#### 7.2.2 PriceOptimizer
+
+**Función objetivo:**
+
+```
+score = α × Revenue − γ × Rev_base × |Δp/p_base| − λ × Rev_base × max(0, m_min − m_pct) / 100
+```
+
+**Parámetros:**
+
+| Parámetro | Valor | Descripción |
+|-----------|-------|-------------|
+| α (alpha) | 1.0 | Peso de revenue |
+| γ (gamma) | 0.1 | Penalización de cambio brusco de precio |
+| β (beta) | 0.0 | Dispersión inter-SKU (no activado) |
+| λ (lambda) | 5.0 | Penalización de violación de margen mínimo |
+| Grid | 50 puntos | Resolución del grid de precios |
+| Rango | [0.70, 1.30] × p_base | ±30% del precio actual |
+
+**Restricciones hard:**
+- Precio ∈ [0.70 × p_base, 1.30 × p_base]
+- Precio > costo_unitario (siempre)
+
+**Márgenes mínimos (soft constraints):**
+
+| Categoría | Margen mínimo |
+|-----------|---------------|
+| Carnes (03CARN) | 25% |
+| Fruver (08FRUV) | 30% |
+| Charcutería (05CHAR) | 30% |
+
+Estos son penalizaciones suaves: el optimizador puede violarlos si el beneficio en revenue compensa la penalización, pero con un costo cuadrático creciente.
+
+**Soporte what-if:** Método `optimize_whatif()` permite aplicar factores fijos de precio por clase (ej: +10% a Carnes) y predecir el impacto.
+
+### 7.3 KPIs Implementados
+
+**Total:** 16 KPIs factibles + resumen global. Los KPIs infeasibles (#11 storage cost, #12 lifecycle, #14 opex ratio, #15 competition, #17 production efficiency, #18 variable cost, #19 inventory index, #20 production cycle, #26-27 cross-elasticity) fueron descartados por falta de datos.
+
+| # | KPI | Granularidad | Función |
+|---|-----|--------------|---------|
+| 1 | ΔRevenue | Por clase | `kpi_delta_revenue()` |
+| 2 | ΔMargin | Por clase | `kpi_delta_margin()` |
+| 3 | Distribución de cambios de precio | Por clase × bins | `kpi_price_change_distribution()` |
+| 4 | Elasticidad precio-demanda | Por clase | `kpi_elasticity()` |
+| 5 | Margen de contribución | Por SKU | `kpi_contribution_margin()` |
+| 6 | PPV (Precio Promedio Ponderado Venta) | Por clase | `kpi_ppv()` |
+| 7 | IRP (Índice Rentabilidad de Precios) | Por clase | `kpi_irp()` |
+| 8 | Tasa de aceptación de precio | Por clase | `kpi_price_acceptance_rate()` |
+| 9 | Tasa de conversión de precios | Por clase | `kpi_price_conversion_rate()` |
+| 10 | Análisis Pareto 80/20 | Global | `kpi_pareto_analysis()` |
+| 11 | Ranking oportunidad de margen | Top 50 SKUs | `kpi_margin_opportunity_ranking()` |
+| 12 | Brecha precio óptimo vs actual | Por clase | `kpi_optimal_vs_actual_gap()` |
+| 13 | Heatmap precio × día semana | Por clase × día | `kpi_heatmap_data()` |
+| 14 | Cumplimiento de demanda | Por clase | `kpi_demand_fulfillment()` |
+| 15 | Velocidad de rotación | Por clase | `kpi_rotation_velocity()` |
+| 16 | Análisis temporal del precio óptimo | Por clase × mes | `kpi_temporal_optimal()` |
+
+### 7.4 Análisis Contrafactual
+
+#### 7.4.1 Escenarios What-If
+
+8 escenarios predefinidos con ajustes fijos de precio por categoría:
+
+| Escenario | Ajuste | ΔRevenue (%) | ΔMargen (%) |
+|-----------|--------|--------------|-------------|
+| carnes_+10% | Carnes +10% | +4.54% | +14.58% |
+| carnes_-10% | Carnes -10% | -2.32% | -7.17% |
+| fruver_+10% | Fruver +10% | +3.32% | +10.22% |
+| fruver_-5% | Fruver -5% | +0.14% | +0.90% |
+| charcu_+10% | Charcutería +10% | +3.03% | +10.19% |
+| all_+5% | Todas +5% | +4.80% | +15.48% |
+| all_-5% | Todas -5% | -2.50% | -7.81% |
+| carnes_+10%_fruver_-5% | Carnes +10%, Fruver -5% | +3.48% | +11.49% |
+
+**Hallazgos:** La asimetría es notable — subidas de +10% generan ganancias (+4.5%) mayores que las pérdidas de bajadas de -10% (-2.3%). Esto es consistente con la baja elasticidad estimada.
+
+#### 7.4.2 Sensitivity Sweep γ
+
+Barrido de la penalización de cambio brusco sobre una muestra de 30,000 filas:
+
+| γ | ΔRevenue (%) | Cambio precio promedio (%) | % sin cambio |
+|---|--------------|----------------------------|---------------|
+| 0.00 | +23.84% | 31.32% | 0.03% |
+| 0.01 | +23.84% | 31.30% | 0.03% |
+| 0.05 | +23.84% | 31.23% | 0.03% |
+| 0.10 | +23.83% | 31.12% | 0.04% |
+| 0.20 | +23.78% | 30.80% | 0.08% |
+| 0.50 | +22.74% | 28.24% | 1.01% |
+| 1.00 | +6.26% | 9.17% | 34.43% |
+
+**Hallazgos:**
+- Para γ ∈ [0, 0.5], el optimizador prácticamente ignora la penalización porque la ganancia de revenue domina
+- Solo γ = 1.0 produce un efecto sustancial: reduce el revenue gain a +6.26% pero estabiliza precios (34% sin cambio)
+- El γ = 0.1 elegido es un compromiso razonable: casi toda la ganancia (+23.83%) con una señal suave de estabilidad
+
+#### 7.4.3 Curvas de Demanda D(p)
+
+Se estimaron curvas de demanda para 9 SKUs representativos (3 por categoría, seleccionados por mayor frecuencia de datos), con 30 puntos de precio cada uno (270 puntos totales).
+
+**Archivo:** `output/simulation/demand_curves.csv`
+**Visualización:** `output/simulation/plots/demand_curves_by_clase.png`
+
+### 7.5 Resultados de la Optimización
+
+**Configuración de ejecución:**
+
+| Parámetro | Valor |
+|-----------|-------|
+| Período | Test set: Jul–Dic 2025 |
+| Filas | 278,350 |
+| Productos | 759 |
+| Sucursales | 4 (SUC001–SUC004) |
+| Categorías | 3 (Carnes, Fruver, Charcutería) |
+| Tiempo de ejecución | 314.7s (5.2 min) |
+| Bandas conformales | q90 half-width = 5.45, q80 half-width = 2.93 |
+
+#### 7.5.1 Resumen Global
+
+| Métrica | Valor |
+|---------|-------|
+| Revenue base (test) | USD 15,362,415 |
+| Revenue optimizado | USD 19,010,916 |
+| **ΔRevenue** | **+USD 3,648,501 (+23.75%)** |
+| Margen base | USD 5,725,474 |
+| Margen optimizado | USD 9,832,682 |
+| **ΔMargen** | **+USD 4,107,208 (+71.74%)** |
+| Cambio de precio promedio | +30.91% |
+| Cambio de precio mediano | +30.03% |
+| % SKUs con subida de precio | 99.55% |
+| % SKUs con bajada de precio | 0.41% |
+| % SKUs sin cambio | 0.04% |
+| Elasticidad promedio | -0.2324 |
+| Elasticidad mediana | -0.0867 |
+
+#### 7.5.2 Resultados por Categoría
+
+**ΔRevenue por categoría:**
+
+| Categoría | Revenue base | Revenue opt | ΔRevenue | ΔRevenue (%) |
+|-----------|-------------|-------------|----------|---------------|
+| Carnes (03CARN) | USD 7,065,640 | USD 8,585,230 | +USD 1,519,590 | +21.51% |
+| Charcutería (05CHAR) | USD 4,131,733 | USD 5,071,162 | +USD 939,429 | +22.74% |
+| Fruver (08FRUV) | USD 4,165,042 | USD 5,354,524 | +USD 1,189,482 | +28.56% |
+
+**ΔMargen por categoría:**
+
+| Categoría | Margen base | Margen opt | ΔMargen | ΔMargen (%) | Margen % base → opt |
+|-----------|------------|------------|---------|-------------|--------------------|
+| Carnes (03CARN) | USD 3,133,577 | USD 4,883,789 | +USD 1,750,212 | +55.85% | 41.3% → 54.6% |
+| Charcutería (05CHAR) | USD 1,338,845 | USD 2,423,215 | +USD 1,084,370 | +80.99% | 32.5% → 48.2% |
+| Fruver (08FRUV) | USD 1,253,052 | USD 2,525,678 | +USD 1,272,626 | +101.56% | 34.8% → 51.9% |
+
+**Elasticidad por categoría:**
+
+| Categoría | Elasticidad media | Elasticidad mediana | Desviación |
+|-----------|-------------------|---------------------|------------|
+| Carnes (03CARN) | -0.313 | -0.180 | 0.711 |
+| Charcutería (05CHAR) | -0.306 | -0.148 | 0.722 |
+| Fruver (08FRUV) | -0.151 | -0.029 | 0.581 |
+
+**Cumplimiento de demanda (demand fulfillment):**
+
+| Categoría | Demanda base | Demanda opt | Fulfillment index |
+|-----------|-------------|-------------|-------------------|
+| Carnes (03CARN) | 1,011,020 uds | 954,236 uds | 0.944 |
+| Charcutería (05CHAR) | 513,194 uds | 485,577 uds | 0.946 |
+| Fruver (08FRUV) | 1,990,367 uds | 1,934,652 uds | 0.972 |
+
+**Precio promedio ponderado (PPV):**
+
+| Categoría | PPV base (USD) | PPV opt (USD) | ΔPPV (%) |
+|-----------|---------------|---------------|----------|
+| Carnes (03CARN) | 6.99 | 9.00 | +28.74% |
+| Charcutería (05CHAR) | 8.05 | 10.44 | +29.72% |
+| Fruver (08FRUV) | 2.09 | 2.77 | +32.26% |
+
+**Índice de Rentabilidad de Precios (IRP):**
+
+| Categoría | IRP |
+|-----------|-----|
+| Carnes (03CARN) | 92.96% |
+| Charcutería (05CHAR) | 93.98% |
+| Fruver (08FRUV) | 100.92% |
+
+**Análisis Pareto:**
+
+| % Revenue | SKUs necesarios | % del total |
+|-----------|-----------------|-------------|
+| 50% | 21 SKUs | 2.77% |
+| 80% | 101 SKUs | 13.31% |
+| 90% | 191 SKUs | 25.16% |
+| 95% | 292 SKUs | 38.47% |
+
+Concentración alta: el 13.3% de los SKUs genera el 80% del revenue.
+
+#### 7.5.3 Interpretación y Limitaciones
+
+**Hallazgo principal:** El optimizador recomienda subir precios al tope (+30%) para el 99.5% de los SKU-día. Esto se debe a la **muy baja elasticidad precio-demanda** estimada por el modelo (media -0.23, mediana -0.09). Con demanda tan inelástica, subir precios siempre mejora el revenue porque la caída en volumen es mínima (~3-6%).
+
+**¿Por qué la elasticidad es tan baja?**
+
+1. **Dominancia de lags de demanda en el modelo:** Las 4 features más importantes del modelo (>86% SHAP) son lags y rolling de demanda. El precio (`precio_unitario_usd`) es feature #10 con SHAP=0.018. El modelo captura principalmente la inercia de demanda, no la sensibilidad al precio.
+2. **Variación de precios limitada en datos históricos:** En el dataset, los precios varían poco día a día para un SKU dado, limitando la señal precio→demanda que el modelo puede aprender.
+3. **Perecederos en Venezuela:** En un mercado con inflación y escasez, los consumidores priorizan disponibilidad sobre precio para productos básicos (carnes, frutas, verduras).
+4. **Features frozen:** Los lags de demanda permanecen constantes en la simulación (ceteris paribus), lo que significa que la única palanca del optimizador es el precio — y el modelo dice que mover el precio tiene poco efecto.
+
+**Implicación para la tesis:** Los resultados del optimizador representan un **techo teórico** asumiendo que la relación precio-demanda del modelo es correcta. En la práctica, las subidas de +30% no son realistas para todos los SKUs simultáneamente. El análisis what-if con ajustes moderados (+5%, +10%) proporciona escenarios más aplicables.
+
+**Recomendación:** Para implementación real, se sugiere:
+- Usar γ ≥ 0.5 para limitar cambios bruscos
+- Restringir el rango a [0.90, 1.15] × p_base para ajustes incrementales
+- Validar con A/B testing en sucursales piloto antes de despliegue
+
+### 7.6 Visualizaciones Generadas
+
+7 visualizaciones guardadas en `output/simulation/plots/`:
+
+| Archivo | Contenido |
+|---------|-----------|
+| `price_change_distribution.png` | Histograma de ΔPrecio (%) por categoría |
+| `revenue_impact_by_clase.png` | Barras de ΔRevenue y ΔMargen por categoría |
+| `pareto_80_20.png` | Curva Pareto de concentración de revenue |
+| `margin_opportunity_ranking.png` | Top 20 SKUs por oportunidad de margen |
+| `demand_curves_by_clase.png` | Curvas D(p) de 9 SKUs representativos |
+| `sensitivity_gamma.png` | Frontera γ vs ΔRevenue y estabilidad |
+| `heatmap_price_dayofweek.png` | Impacto de revenue por día de semana |
+
+### 7.7 Artefactos Generados
+
+**Directorio:** `output/simulation/`
+
+| Archivo | Descripción | Tamaño |
+|---------|-------------|--------|
+| `optimization_results.parquet` | Resultados detallados (278K filas) | 14.4 MB |
+| `optimization_results.csv` | Ídem en CSV | 44.9 MB |
+| `kpi_summary.json` | Resumen global de KPIs | <1 KB |
+| `run_metadata.json` | Metadata de ejecución | <1 KB |
+| `whatif_scenarios.csv` | 8 escenarios what-if | <1 KB |
+| `sensitivity_gamma.csv` | Sweep de 7 valores de γ | <1 KB |
+| `demand_curves.csv` | 270 puntos de curvas D(p) | 20 KB |
+| `kpis/*.csv` | 16 archivos de KPIs individuales | <50 KB c/u |
+| `plots/*.png` | 7 visualizaciones | ~50-110 KB c/u |
+
+**Nota:** Los archivos `optimization_results.parquet` y `.csv` están en `.gitignore` por tamaño. Se regeneran ejecutando `run_optimization.py`.
+
+---
+
 ## Artefactos del Proyecto
 
 ### Estructura de Directorios
@@ -917,6 +1222,11 @@ sip-dynamic-pricing/
 │   │   ├── two_stage.py        # Clase TwoStageDemandModel
 │   │   └── conformal.py        # Intervalos conformales
 │   ├── simulation/
+│   │   ├── simulator.py        # DemandSimulator
+│   │   ├── optimizer.py        # PriceOptimizer
+│   │   ├── kpis.py             # 16 KPIs
+│   │   ├── counterfactual.py   # What-if, sweep γ, visualizaciones
+│   │   └── run_optimization.py # Runner del pipeline
 │   └── utils/
 └── mlruns/                     # MLflow tracking
 ```
@@ -932,15 +1242,17 @@ sip-dynamic-pricing/
 || `c013434` | EDA: márgenes, ceros, limitaciones |
 || `77cabdd` | DECISIONS.md, gitignore mlruns |
 || `de8e218` | Monotonicidad, WMAPE_revenue, feriados, bietápico |
+|| `30e3421` | Simulación: motor de simulación y optimizador de precios |
+|| `b4fcc21` | Simulación: KPIs, análisis contrafactual y runner |
+|| `fd20311` | Simulación: resultados Fase 7 (test 2025-H2) |
 
 ---
 
-## Próximos Pasos (Fases 6-9)
+## Próximos Pasos (Fases 8-9)
 
-1. **Fase 6:** Datos sintéticos de competencia
-2. **Fase 7:** Simulación y optimización de precios
-3. **Fase 8:** Dashboard Streamlit
-4. **Fase 9:** Validación final y documentación de tesis
+1. **Fase 6 (pospuesta):** Datos sintéticos de competencia — pendiente por falta de datos reales
+2. **Fase 8:** Dashboard Streamlit — visualización interactiva de resultados y recomendaciones
+3. **Fase 9:** Validación final y documentación de tesis
 
 ---
 
